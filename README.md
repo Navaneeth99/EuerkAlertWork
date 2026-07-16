@@ -124,13 +124,45 @@ streamlit run code/dashboard/app.py
 
 Sidebar: category multiselect, searchable entity multiselect, and impute-zeros toggle. Overview and FE panels use precomputed category-combo caches when no entity filter is set.
 
-### Deploy (Streamlit Community Cloud)
+### Deploy
 
-1. Commit and push this repo to GitHub, including `Processed/dashboard/` (required at runtime; ~14 MB). Do **not** commit DuckDB / `rawdata/` (ignored).
-2. Go to [share.streamlit.io](https://share.streamlit.io) → **New app**.
-3. Select the repo and branch.
-4. Set **Main file path** to: `code/dashboard/app.py`
-5. Under Advanced settings, set **Python packages** / requirements file to: `requirements-dashboard.txt`
-6. Deploy. The live app resolves `Processed/dashboard/` from the repo root the same way as local runs.
+Streamlit Community Cloud is optional. Prefer **Render** or **Hugging Face Spaces** with the repo `Dockerfile` (no local Docker required — the host builds the image).
 
-After updating matches or metrics, rebuild the cache locally, commit the new `Processed/dashboard/` files, and push — Cloud will redeploy automatically.
+#### Option A — Render (easiest with your existing public GitHub repo)
+
+1. Open [render.com](https://render.com) → **New** → **Web Service**.
+2. Connect GitHub and select **`Navaneeth99/EuerkAlertWork`**.
+3. Settings:
+   - **Language / Environment:** Docker
+   - **Branch:** `main`
+   - **Instance type:** Free
+4. Create Web Service and wait for the build. Open the `*.onrender.com` URL.
+
+Render uses the root [`Dockerfile`](Dockerfile), which runs `streamlit run code/dashboard/app.py` on port **8501**.
+
+#### Option B — Hugging Face Spaces (Docker)
+
+1. Go to [huggingface.co/new-space](https://huggingface.co/new-space).
+2. Space SDK: **Docker** · create the Space.
+3. In Space settings, link this GitHub repo **or** push to the Space remote:
+
+```bash
+git remote add hf https://huggingface.co/spaces/<YOUR_HF_USER>/<SPACE_NAME>
+git push hf main
+```
+
+4. If the Space README is empty, paste the frontmatter from [`README_SPACE.md`](README_SPACE.md) into the Space’s `README.md`, then rebuild.
+
+#### Option C — Local / VPS Docker
+
+```bash
+docker build -t eurekalert-dashboard .
+docker run --rm -p 8501:8501 eurekalert-dashboard
+```
+
+#### Option D — Streamlit Community Cloud
+
+1. [share.streamlit.io](https://share.streamlit.io) → New app → repo `Navaneeth99/EuerkAlertWork`.
+2. Main file: `code/dashboard/app.py` · Requirements: `requirements-dashboard.txt`.
+
+After updating matches or metrics, rebuild the cache locally, commit `Processed/dashboard/`, and push so the host redeploys.
