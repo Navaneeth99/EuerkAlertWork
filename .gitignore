@@ -1,0 +1,32 @@
+# Python / local env
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Secrets / local IDE
+.env
+.env.*
+!.env.example
+.vscode/
+.idea/
+
+# Large / regenerable data (keep Processed/dashboard/ for Streamlit Cloud)
+rawdata/
+tmp/
+*.duckdb
+*.duckdb.wal
+duckdb_cli*.zip
+
+# Processed intermediates except the dashboard cache
+Processed/*
+!Processed/dashboard/
+!Processed/dashboard/**
+
+# OS junk
+.DS_Store
+Thumbs.db

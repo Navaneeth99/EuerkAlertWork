@@ -1,0 +1,103 @@
+{
+  "created_at_utc": "2026-07-16T23:00:32.360312+00:00",
+  "n_papers": 1055174,
+  "n_with_pr": 14180,
+  "n_entities": 43,
+  "year_min": 2015,
+  "year_max": 2027,
+  "columns": [
+    "entity_name",
+    "category",
+    "doi_norm",
+    "publication_date",
+    "pub_year",
+    "has_pr",
+    "patent_mentions",
+    "policy_mentions",
+    "news_mentions",
+    "facebook_mentions",
+    "x_post_mentions",
+    "bluesky_mentions",
+    "video_mentions",
+    "cited_by_count",
+    "attention_score",
+    "total_mentions"
+  ],
+  "include_coefficients": true,
+  "imputed_zeros": true,
+  "categories": [
+    "institution",
+    "journal",
+    "publisher"
+  ],
+  "category_combos": [
+    {
+      "categories": [
+        "institution"
+      ],
+      "key": "institution",
+      "n_papers": 1030375,
+      "n_with_pr": 12628,
+      "has_coefficients": true
+    },
+    {
+      "categories": [
+        "journal"
+      ],
+      "key": "journal",
+      "n_papers": 9407,
+      "n_with_pr": 832,
+      "has_coefficients": true
+    },
+    {
+      "categories": [
+        "publisher"
+      ],
+      "key": "publisher",
+      "n_papers": 15392,
+      "n_with_pr": 720,
+      "has_coefficients": true
+    },
+    {
+      "categories": [
+        "institution",
+        "journal"
+      ],
+      "key": "institution__journal",
+      "n_papers": 1039782,
+      "n_with_pr": 13460,
+      "has_coefficients": true
+    },
+    {
+      "categories": [
+        "institution",
+        "publisher"
+      ],
+      "key": "institution__publisher",
+      "n_papers": 1045767,
+      "n_with_pr": 13348,
+      "has_coefficients": true
+    },
+    {
+      "categories": [
+        "journal",
+        "publisher"
+      ],
+      "key": "journal__publisher",
+      "n_papers": 24799,
+      "n_with_pr": 1552,
+      "has_coefficients": true
+    },
+    {
+      "categories": [
+        "institution",
+        "journal",
+        "publisher"
+      ],
+      "key": "institution__journal__publisher",
+      "n_papers": 1055174,
+      "n_with_pr": 14180,
+      "has_coefficients": true
+    }
+  ]
+}

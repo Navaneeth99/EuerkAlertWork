@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(textutil:*)",
+      "Bash(mkdir:*)",
+      "WebFetch(domain:docs.openalex.org)",
+      "Bash(python3:*)",
+      "Bash(cat:*)",
+      "Bash(ls:*)",
+      "Bash(chmod:*)",
+      "Bash(curl -s \"https://api.openalex.org/sources?filter=issn:2949-9216&mailto=saqib@berkeley.edu\")",
+      "Bash(curl -s \"https://api.openalex.org/sources?filter=issn:2523-3548&mailto=saqib@berkeley.edu\")",
+      "Bash(curl -s \"https://api.openalex.org/sources?filter=issn:3067-7807&mailto=saqib@berkeley.edu\")",
+      "Bash(curl -s \"https://api.openalex.org/sources?filter=issn:2001-0370&mailto=saqib@berkeley.edu\")",
+      "Bash(curl -s \"https://api.openalex.org/sources?filter=issn:2950-3639&mailto=saqib@berkeley.edu\")",
+      "Bash(curl -s \"https://api.openalex.org/institutions?search=Institute+of+Physics+Chinese+Academy+of+Sciences&mailto=saqib@berkeley.edu\")",
+      "Bash(curl -s \"https://api.openalex.org/institutions/I4210159876?mailto=saqib@berkeley.edu\")"
+    ]
+  }
+}

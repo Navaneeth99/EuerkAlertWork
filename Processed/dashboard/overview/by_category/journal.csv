@@ -1,0 +1,15 @@
+metric,metric_label,group,mean,se,n
+news_mentions,News Mentions,With PR,4.421875,0.20553963857318702,832
+news_mentions,News Mentions,Without PR,0.27090379008746357,0.02986318601130135,8575
+patent_mentions,Patent Mentions,With PR,0.078125,0.019831697897442314,832
+patent_mentions,Patent Mentions,Without PR,0.16489795918367348,0.023682269709163435,8575
+facebook_mentions,Facebook Mentions,With PR,0.7175480769230769,0.027282411670769727,832
+facebook_mentions,Facebook Mentions,Without PR,0.3491545189504373,0.008299752013778697,8575
+x_post_mentions,X Mentions,With PR,7.403846153846154,0.3812185111504386,832
+x_post_mentions,X Mentions,Without PR,4.1755102040816325,0.3275641066376593,8575
+policy_mentions,Policy Mentions,With PR,0.025240384615384616,0.013737037257465124,832
+policy_mentions,Policy Mentions,Without PR,0.021690962099125365,0.0032487208602000987,8575
+attention_score,Attention Score,With PR,37.80649038461539,1.6842937414406522,832
+attention_score,Attention Score,Without PR,3.883731778425656,0.26683114347037096,8575
+cited_by_count,Citations,With PR,27.02283653846154,2.2393200012255496,832
+cited_by_count,Citations,Without PR,26.07661807580175,0.7298767409188138,8575
