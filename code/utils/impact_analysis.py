@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Any
 
-import duckdb
 import numpy as np
 import pandas as pd
 
@@ -106,7 +106,7 @@ def short_entity_name(name: str) -> str:
     return name.split(",")[0].strip()
 
 
-def assert_pipeline_objects(con: duckdb.DuckDBPyConnection) -> None:
+def assert_pipeline_objects(con: Any) -> None:
     """Ensure the matching-pipeline views/tables exist before querying read-only."""
     existing = {
         row[0]
@@ -176,6 +176,8 @@ def load_paper_df(
     Opens the DuckDB file read-only and queries the views/tables already built
     by the matching pipeline. Does NOT call setup_views().
     """
+    import duckdb  # local import: dashboard runtime uses parquet cache only
+
     con = duckdb.connect(str(duckdb_path), read_only=True)
     assert_pipeline_objects(con)
 
