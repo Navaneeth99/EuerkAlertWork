@@ -359,7 +359,7 @@ def section_4_fixed_effects(
     st.header("Section 3 — Fixed-Effects Estimates")
     st.markdown(
         "OLS coefficient on `has_pr` with **entity fixed effects** "
-        "(`metric ~ has_pr | entity_name`, CRV1 SEs clustered by entity)."
+        "(`metric ~ has_pr | entity_name`)."
     )
     st.caption(format_active_filters(categories=categories, entities=entities))
 
