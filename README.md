@@ -96,20 +96,39 @@ python3 code/fetch_publications.py
 
 ## Press Release Impact Dashboard (Streamlit)
 
-Interactive dashboard comparing papers **with** vs **without** a matched EurekAlert press release (Performance, Heterogeneity, Fixed-Effects). Charts are interactive Plotly figures styled like the McKinsey report charts in `code/07_create_graphs.py`.
+Interactive dashboard that renders the HTML report template
+(`code/dashboard/report_template.html`, from `reports/EurekAlert Report Standalond.html`)
+filled with live numbers from `Processed/dashboard/`.
 
 The app reads a **prebuilt cache** under `Processed/dashboard/` (no DuckDB/Altmetric query on startup):
 
-- `paper_df.parquet` — slim paper-level metrics
+- `paper_df.parquet` — slim paper-level metrics (includes `last_author_id` / `last_author_name`)
 - `overview/by_category/*.csv` — Section 1 stats for every category combination
-- `coefficients/by_category/*.csv` — FE coefficients for every category combination
+- `coefficients/by_category/*.csv` — entity FE coefficients (`y ~ has_pr | entity_name`)
+- `coefficients/by_last_author/*.csv` — last-author FE coefficients (`y ~ has_pr | last_author_id`)
 - `meta.json` — row counts / build timestamp / combo index
 
 ### Prerequisites (local rebuild)
 
-1. Matching pipeline has been run so `Processed/eurekalert.duckdb` contains `embedding_title_match`, `pr_paper_matched`, and `doi_list_norm`.
-2. Altmetric deliverable CSV is present at `rawdata/AltMetData/aaas_deliverable_20260415.csv`.
-3. Export the dashboard cache once (or after rematching):
+1. Fetch publication DOIs (slim sidecar; no checkpoints in `--dois-only`):
+
+```bash
+python code/02_fetch_publications.py --dois-only
+```
+
+2. Rebuild `Processed/DOIList.csv`:
+
+```bash
+python code/03_extract_dois.py
+```
+
+3. Rematerialize DuckDB `doi_list` if you use a materialised table (`python code/05_eurekalert_duckdb.py materialize` or re-run matching).
+
+4. Matching pipeline has been run so `Processed/eurekalert.duckdb` contains `embedding_title_match`, `pr_paper_matched`, and `doi_list_norm`.
+
+5. Altmetric deliverable CSV is present at `rawdata/AltMetData/aaas_deliverable_20260415.csv`.
+
+6. Export the dashboard cache (entity FE + last-author FE):
 
 ```bash
 python code/08_export_dashboard_data.py
@@ -122,7 +141,7 @@ pip install -r requirements-dashboard.txt
 streamlit run code/dashboard/app.py
 ```
 
-Sidebar: category multiselect, searchable entity multiselect, and impute-zeros toggle. Overview and FE panels use precomputed category-combo caches when no entity filter is set.
+The main pane is the full report (data → models → results → heterogeneity → conclusion) with figures driven by the dashboard cache.
 
 ### Deploy
 

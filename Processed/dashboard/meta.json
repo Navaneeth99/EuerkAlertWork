@@ -1,7 +1,7 @@
 {
-  "created_at_utc": "2026-07-16T23:00:32.360312+00:00",
-  "n_papers": 1055174,
-  "n_with_pr": 14180,
+  "created_at_utc": "2026-07-22T18:18:34.700479+00:00",
+  "n_papers": 1053971,
+  "n_with_pr": 14178,
   "n_entities": 43,
   "year_min": 2015,
   "year_max": 2027,
@@ -21,7 +21,9 @@
     "video_mentions",
     "cited_by_count",
     "attention_score",
-    "total_mentions"
+    "total_mentions",
+    "last_author_id",
+    "last_author_name"
   ],
   "include_coefficients": true,
   "imputed_zeros": true,
@@ -36,9 +38,10 @@
         "institution"
       ],
       "key": "institution",
-      "n_papers": 1030375,
-      "n_with_pr": 12628,
-      "has_coefficients": true
+      "n_papers": 1029172,
+      "n_with_pr": 12626,
+      "has_coefficients": true,
+      "has_last_author_coefficients": true
     },
     {
       "categories": [
@@ -47,7 +50,8 @@
       "key": "journal",
       "n_papers": 9407,
       "n_with_pr": 832,
-      "has_coefficients": true
+      "has_coefficients": true,
+      "has_last_author_coefficients": true
     },
     {
       "categories": [
@@ -56,7 +60,8 @@
       "key": "publisher",
       "n_papers": 15392,
       "n_with_pr": 720,
-      "has_coefficients": true
+      "has_coefficients": true,
+      "has_last_author_coefficients": true
     },
     {
       "categories": [
@@ -64,9 +69,10 @@
         "journal"
       ],
       "key": "institution__journal",
-      "n_papers": 1039782,
-      "n_with_pr": 13460,
-      "has_coefficients": true
+      "n_papers": 1038579,
+      "n_with_pr": 13458,
+      "has_coefficients": true,
+      "has_last_author_coefficients": true
     },
     {
       "categories": [
@@ -74,9 +80,10 @@
         "publisher"
       ],
       "key": "institution__publisher",
-      "n_papers": 1045767,
-      "n_with_pr": 13348,
-      "has_coefficients": true
+      "n_papers": 1044564,
+      "n_with_pr": 13346,
+      "has_coefficients": true,
+      "has_last_author_coefficients": true
     },
     {
       "categories": [
@@ -86,7 +93,8 @@
       "key": "journal__publisher",
       "n_papers": 24799,
       "n_with_pr": 1552,
-      "has_coefficients": true
+      "has_coefficients": true,
+      "has_last_author_coefficients": true
     },
     {
       "categories": [
@@ -95,9 +103,10 @@
         "publisher"
       ],
       "key": "institution__journal__publisher",
-      "n_papers": 1055174,
-      "n_with_pr": 14180,
-      "has_coefficients": true
+      "n_papers": 1053971,
+      "n_with_pr": 14178,
+      "has_coefficients": true,
+      "has_last_author_coefficients": true
     }
   ]
 }

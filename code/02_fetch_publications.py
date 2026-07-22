@@ -30,6 +30,8 @@ RATE_LIMIT_DELAY = 0.1  # Seconds between requests (polite pool with email = 10 
 MAX_RETRIES = 6
 RETRY_BACKOFF_BASE = 2  # seconds; wait doubles each retry: 2, 4, 8, 16, 32, 64
 CHECKPOINT_EVERY = 50  # save progress every N pages (~10K works)
+# (connect timeout, read timeout) — avoids indefinite hang after laptop lock / dead sockets
+REQUEST_TIMEOUT = (10, 60)
 
 # Paths
 SCRIPT_DIR = Path(__file__).parent
@@ -51,102 +53,311 @@ def print_progress_bar(current: int, total: int, bar_length: int = 40, prefix: s
     print(f"\r  {prefix} |{bar}| {current:,}/{total:,} ({percent*100:.1f}%)", end="", flush=True)
 
 
+def _safe_err(exc: BaseException) -> str:
+    """Strip API key from exception text before printing."""
+    text = str(exc)
+    if API_KEY:
+        text = text.replace(API_KEY, "***")
+    return text
+
+
+def _atomic_write_json(path: Path, payload: dict) -> None:
+    tmp = path.with_suffix(path.suffix + ".tmp")
+    tmp.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+    tmp.replace(path)
+
+
 def _save_checkpoint(checkpoint_path: Path, works: list, next_cursor: str | None, page: int) -> None:
-    tmp = checkpoint_path.with_suffix(".tmp")
-    tmp.write_text(
-        json.dumps({"works": works, "next_cursor": next_cursor, "page": page}, ensure_ascii=False),
-        encoding="utf-8",
+    """Full-works resume checkpoint (large; only for non-dois-only mode)."""
+    _atomic_write_json(
+        checkpoint_path,
+        {"works": works, "next_cursor": next_cursor, "page": page},
     )
-    tmp.replace(checkpoint_path)
 
 
-def fetch_works_cursor(filter_str: str, entity_name: str, checkpoint_path: Path | None = None,
-                       select: str | None = None) -> list:
-    """
-    Fetch all works matching the filter using cursor pagination.
-    If checkpoint_path is given, saves progress every CHECKPOINT_EVERY pages
-    and resumes from an existing checkpoint on restart.
-    If select is given, only those comma-separated fields are returned by the
-    API (e.g. "id,doi,display_name,publication_date,cited_by_count"), keeping
-    both transfer size and checkpoint size small.
-    """
-    all_works, cursor, page = [], "*", 1
-    total_count = None
-
-    while cursor:
-        params = {
-            "mailto": EMAIL,
+def _save_slim_partial(
+    path: Path,
+    *,
+    filter_str: str,
+    next_cursor: str | None,
+    page: int,
+    n_fetched: int,
+    total_count: int | None,
+    dois: list,
+) -> None:
+    """Slim DOI resume checkpoint for --dois-only (safe for large orgs like CAS)."""
+    _atomic_write_json(
+        path,
+        {
             "filter": filter_str,
-            "per_page": PER_PAGE,
-            "cursor": cursor,
-        }
-        if API_KEY:
-            params["api_key"] = API_KEY
-        if select:
-            params["select"] = select
+            "next_cursor": next_cursor,
+            "page": page,
+            "n_fetched": n_fetched,
+            "total_count": total_count,
+            "dois": dois,
+        },
+    )
 
-        for attempt in range(MAX_RETRIES):
-            try:
-                response = requests.get(f"{BASE_URL}/works", params=params)
 
-                if response.status_code in (400, 422):
-                    print(f"\n  API error {response.status_code}: {response.text[:300]}")
-                    cursor = None
-                    break
+def _load_slim_partial(path: Path, expected_filter: str) -> dict | None:
+    if not path.exists():
+        return None
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as e:
+        print(f"  Warning: could not read partial checkpoint ({_safe_err(e)}); starting fresh")
+        return None
+    if data.get("filter") != expected_filter:
+        print("  Partial checkpoint filter mismatch; starting fresh")
+        return None
+    if not data.get("next_cursor"):
+        print("  Partial checkpoint has no next_cursor; starting fresh")
+        return None
+    return data
 
-                if response.status_code == 429:
-                    suggested = int(response.headers.get("Retry-After", 0))
-                    backoff = RETRY_BACKOFF_BASE * (2 ** attempt)
-                    wait = min(max(suggested, backoff), 120)  # cap at 2 minutes
-                    print(f"\n  Rate limited (429). Waiting {wait}s before retry {attempt + 1}/{MAX_RETRIES}...")
-                    time.sleep(wait)
-                    continue
 
-                response.raise_for_status()
-                data = response.json()
-
-                works = data.get("results", [])
-                all_works.extend(works)
-
-                meta = data.get("meta", {})
-                total_count = meta.get("count", 0)
-                cursor = meta.get("next_cursor")
-
-                print_progress_bar(len(all_works), total_count, prefix=f"Page {page:4d}")
-                page += 1
-
-                if checkpoint_path is not None and page % CHECKPOINT_EVERY == 0:
-                    _save_checkpoint(checkpoint_path, all_works, cursor, page)
-
-                time.sleep(RATE_LIMIT_DELAY)
-                break  # success — exit retry loop
-
-            except requests.RequestException as e:
-                wait = RETRY_BACKOFF_BASE * (2 ** attempt)
-                if attempt < MAX_RETRIES - 1:
-                    print(f"\n  Error on page {page} (attempt {attempt + 1}/{MAX_RETRIES}): {e}. Retrying in {wait}s...")
-                    time.sleep(wait)
-                else:
-                    print(f"\n  Error fetching page {page} after {MAX_RETRIES} attempts: {e}")
-                    cursor = None  # stop pagination
-        else:
-            # All retries exhausted via 429 loop
-            print(f"\n  Giving up on page {page} after {MAX_RETRIES} rate-limit retries.")
-            cursor = None
-
-    # Print newline after progress bar completes
-    print()
-
-    if checkpoint_path is not None and checkpoint_path.exists():
-        checkpoint_path.unlink()
-
-    return all_works
+def _load_full_checkpoint(path: Path) -> dict | None:
+    if not path.exists():
+        return None
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as e:
+        print(f"  Warning: could not read checkpoint ({_safe_err(e)}); starting fresh")
+        return None
+    if not data.get("next_cursor"):
+        return None
+    return data
 
 
 def extract_short_id(openalex_id: str) -> str:
     """Extract the short ID from full OpenAlex URL."""
     # https://openalex.org/I19820366 -> I19820366
     return openalex_id.split("/")[-1] if openalex_id else ""
+
+
+def extract_last_author(work: dict) -> tuple[str, str]:
+    """Return (openalex_author_id, display_name) for the last author.
+
+    Prefers author_position == \"last\"; falls back to the last authorship in the list
+    (covers single-author works marked only as \"first\").
+    """
+    authorships = work.get("authorships") or []
+    chosen = None
+    for authorship in authorships:
+        if authorship.get("author_position") == "last":
+            chosen = authorship
+            break
+    if chosen is None and authorships:
+        chosen = authorships[-1]
+    if not chosen:
+        return "", ""
+    author = chosen.get("author") or {}
+    author_id = extract_short_id(author.get("id") or "")
+    name = (author.get("display_name") or chosen.get("raw_author_name") or "").strip()
+    return author_id, name
+
+
+def work_to_doi_row(work: dict) -> dict | None:
+    """Slim DOI sidecar row, including last-author fields when authorships are present."""
+    doi = work.get("doi")
+    if not doi:
+        return None
+    last_author_id, last_author_name = extract_last_author(work)
+    return {
+        "doi": doi,
+        "publication_date": work.get("publication_date"),
+        "title": (work.get("display_name") or work.get("title") or "")[:100],
+        "cited_by_count": work.get("cited_by_count", 0),
+        "last_author_id": last_author_id,
+        "last_author_name": last_author_name,
+    }
+
+
+def fetch_works_cursor(
+    filter_str: str,
+    entity_name: str,
+    checkpoint_path: Path | None = None,
+    select: str | None = None,
+    *,
+    slim_to_dois: bool = False,
+) -> tuple[list, int]:
+    """
+    Fetch all works matching the filter using cursor pagination.
+
+    Returns (records, n_fetched) where n_fetched is the number of API work objects
+    seen. If slim_to_dois=True, records are DOI sidecar rows (authorships discarded
+    after each page) — use this for --dois-only so large orgs do not OOM.
+
+    When checkpoint_path is set:
+      - slim_to_dois: writes/loads a slim partial (DOI rows + cursor)
+      - else: writes/loads full works checkpoint
+    Incomplete runs keep the checkpoint so the next invocation can resume.
+    """
+    all_records: list = []
+    n_fetched = 0
+    cursor, page = "*", 1
+    total_count = None
+    completed = False
+    resume_cursor = cursor
+
+    if checkpoint_path is not None:
+        if slim_to_dois:
+            partial = _load_slim_partial(checkpoint_path, filter_str)
+            if partial:
+                all_records = list(partial.get("dois") or [])
+                n_fetched = int(partial.get("n_fetched") or 0)
+                cursor = partial["next_cursor"]
+                resume_cursor = cursor
+                page = int(partial.get("page") or 1)
+                total_count = partial.get("total_count")
+                print(
+                    f"  Resuming from partial: page {page}, "
+                    f"{n_fetched:,} works fetched, {len(all_records):,} DOIs so far"
+                )
+        else:
+            ckpt = _load_full_checkpoint(checkpoint_path)
+            if ckpt:
+                all_records = list(ckpt.get("works") or [])
+                n_fetched = len(all_records)
+                cursor = ckpt["next_cursor"]
+                resume_cursor = cursor
+                page = int(ckpt.get("page") or 1)
+                print(f"  Resuming from checkpoint: page {page}, {n_fetched:,} works")
+
+    try:
+        while cursor:
+            # Cursor for the page we are about to request (resume point if this fails).
+            resume_cursor = cursor
+            params = {
+                "mailto": EMAIL,
+                "filter": filter_str,
+                "per_page": PER_PAGE,
+                "cursor": cursor,
+            }
+            if API_KEY:
+                params["api_key"] = API_KEY
+            if select:
+                params["select"] = select
+
+            for attempt in range(MAX_RETRIES):
+                try:
+                    response = requests.get(
+                        f"{BASE_URL}/works",
+                        params=params,
+                        timeout=REQUEST_TIMEOUT,
+                    )
+
+                    if response.status_code in (400, 422):
+                        print(f"\n  API error {response.status_code}: {response.text[:300]}")
+                        cursor = None
+                        break
+
+                    if response.status_code == 429:
+                        suggested = int(response.headers.get("Retry-After", 0))
+                        backoff = RETRY_BACKOFF_BASE * (2 ** attempt)
+                        wait = min(max(suggested, backoff), 120)  # cap at 2 minutes
+                        print(
+                            f"\n  Rate limited (429). Waiting {wait}s before "
+                            f"retry {attempt + 1}/{MAX_RETRIES}..."
+                        )
+                        time.sleep(wait)
+                        continue
+
+                    response.raise_for_status()
+                    data = response.json()
+
+                    works = data.get("results", [])
+                    n_fetched += len(works)
+                    if slim_to_dois:
+                        for work in works:
+                            row = work_to_doi_row(work)
+                            if row:
+                                all_records.append(row)
+                    else:
+                        all_records.extend(works)
+
+                    meta = data.get("meta", {})
+                    total_count = meta.get("count", 0)
+                    cursor = meta.get("next_cursor")
+                    # After a successful page, resume from the *next* cursor (not this page again).
+                    if cursor:
+                        resume_cursor = cursor
+
+                    print_progress_bar(
+                        n_fetched, total_count or n_fetched, prefix=f"Page {page:4d}"
+                    )
+                    page += 1
+
+                    if checkpoint_path is not None and page % CHECKPOINT_EVERY == 0 and cursor:
+                        if slim_to_dois:
+                            _save_slim_partial(
+                                checkpoint_path,
+                                filter_str=filter_str,
+                                next_cursor=cursor,
+                                page=page,
+                                n_fetched=n_fetched,
+                                total_count=total_count,
+                                dois=all_records,
+                            )
+                        else:
+                            _save_checkpoint(checkpoint_path, all_records, cursor, page)
+
+                    if not cursor:
+                        completed = True
+
+                    time.sleep(RATE_LIMIT_DELAY)
+                    break  # success — exit retry loop
+
+                except requests.RequestException as e:
+                    wait = RETRY_BACKOFF_BASE * (2 ** attempt)
+                    if attempt < MAX_RETRIES - 1:
+                        print(
+                            f"\n  Error on page {page} (attempt {attempt + 1}/{MAX_RETRIES}): "
+                            f"{_safe_err(e)}. Retrying in {wait}s..."
+                        )
+                        time.sleep(wait)
+                    else:
+                        print(
+                            f"\n  Error fetching page {page} after {MAX_RETRIES} attempts: "
+                            f"{_safe_err(e)}"
+                        )
+                        cursor = None  # stop pagination; keep partial for resume
+            else:
+                # All retries exhausted via 429 loop
+                print(f"\n  Giving up on page {page} after {MAX_RETRIES} rate-limit retries.")
+                cursor = None
+    except KeyboardInterrupt:
+        print("\n  Interrupted — saving partial progress before exit...")
+        cursor = None
+
+    # Print newline after progress bar completes
+    print()
+
+    if checkpoint_path is not None:
+        if completed:
+            if checkpoint_path.exists():
+                checkpoint_path.unlink()
+        elif n_fetched or all_records:
+            # Persist so the next run can resume (including pages since last periodic save).
+            if slim_to_dois:
+                _save_slim_partial(
+                    checkpoint_path,
+                    filter_str=filter_str,
+                    next_cursor=resume_cursor,
+                    page=page,
+                    n_fetched=n_fetched,
+                    total_count=total_count,
+                    dois=all_records,
+                )
+                print(
+                    f"  Saved partial progress ({n_fetched:,} works, {len(all_records):,} DOIs) "
+                    f"→ {checkpoint_path.name}"
+                )
+            else:
+                _save_checkpoint(checkpoint_path, all_records, resume_cursor, page)
+                print(f"  Saved checkpoint ({n_fetched:,} works) → {checkpoint_path.name}")
+
+    return all_records, n_fetched
 
 
 def sanitize_filename(name: str) -> str:
@@ -171,7 +382,14 @@ def sanitize_filename(name: str) -> str:
     return result[:100]  # Limit length
 
 
-def process_entity(category: str, original_name: str, openalex_id: str, openalex_name: str, dois_only: bool = False):
+def process_entity(
+    category: str,
+    original_name: str,
+    openalex_id: str,
+    openalex_name: str,
+    dois_only: bool = False,
+    force: bool = False,
+):
     """
     Process a single entity: fetch works and save to file.
     If dois_only=True, only the lightweight _dois.json sidecar is written.
@@ -192,71 +410,111 @@ def process_entity(category: str, original_name: str, openalex_id: str, openalex
         print(f"  Unknown category: {category}, skipping")
         return None
 
-
     safe_name = sanitize_filename(original_name)
     category_dir = OUTPUT_DIR / f"{category.capitalize()}s"
     category_dir.mkdir(parents=True, exist_ok=True)
-    checkpoint_path = category_dir / f"{safe_name}.checkpoint.json"
 
-    # In dois_only mode keep only the 5 fields needed for the sidecar.
-    # Full work objects (~5KB each) are fetched from the API but discarded
-    # immediately after extracting these fields, so memory stays low.
+    # Full-works mode: large checkpoint. DOIs-only: slim partial (rows + cursor).
+    if dois_only:
+        checkpoint_path = category_dir / f"{safe_name}_dois.partial.json"
+    else:
+        checkpoint_path = category_dir / f"{safe_name}.checkpoint.json"
+
+    if force and checkpoint_path.exists():
+        checkpoint_path.unlink()
+        print(f"  Cleared stale progress file (--force): {checkpoint_path.name}")
 
     print(f"\nFetching: {original_name}")
     print(f"  Filter: {filter_str}")
-    # In dois_only mode ask the API to return only the 5 fields needed for
-    # the sidecar. This keeps each work object ~25x smaller, so both the
-    # in-memory list and the checkpoint file stay small.
-    doi_select = "id,doi,display_name,publication_date,cited_by_count" if dois_only else None
-    works = fetch_works_cursor(filter_str, original_name, checkpoint_path=checkpoint_path,
-                               select=doi_select)
 
+    if dois_only:
+        # Include authorships for last_author_*; slim each page immediately so
+        # we never hold ~600k full work objects in memory.
+        doi_select = "id,doi,display_name,publication_date,cited_by_count,authorships"
+        doi_list, n_fetched = fetch_works_cursor(
+            filter_str,
+            original_name,
+            checkpoint_path=checkpoint_path,
+            select=doi_select,
+            slim_to_dois=True,
+        )
+        if n_fetched == 0:
+            print("  No works found")
+            return None
+        # Incomplete fetch (errors exhausted): keep partial, do not write final sidecar.
+        if checkpoint_path.exists():
+            print(
+                f"  Incomplete — resume later with the same command "
+                f"(progress in {checkpoint_path.name})"
+            )
+            return None
+        doi_path = category_dir / f"{safe_name}_dois.json"
+        with open(doi_path, "w", encoding="utf-8") as f:
+            json.dump(
+                {
+                    "entity": original_name,
+                    "total_works": n_fetched,
+                    "works_with_doi": len(doi_list),
+                    "dois": doi_list,
+                },
+                f,
+                indent=2,
+                ensure_ascii=False,
+            )
+        print(f"  Saved {len(doi_list):,} DOIs (+ last author) to: {doi_path.name}")
+        return n_fetched
+
+    works, n_fetched = fetch_works_cursor(
+        filter_str, original_name, checkpoint_path=checkpoint_path, select=None
+    )
+    if checkpoint_path.exists():
+        print(
+            f"  Incomplete — resume later with the same command "
+            f"(progress in {checkpoint_path.name})"
+        )
+        return None
     if not works:
-        print(f"  No works found")
+        print("  No works found")
         return None
 
-    if not dois_only:
-        output_data = {
-            "metadata": {
-                "original_name": original_name,
-                "openalex_id": openalex_id,
-                "openalex_name": openalex_name,
-                "category": category,
-                "filter_used": filter_str,
-                "fetch_date": datetime.now().isoformat(),
-                "total_works": len(works),
-                "date_range": f"{START_DATE} to present",
-            },
-            "works": works,
-        }
-        output_path = category_dir / f"{safe_name}.json"
-        with open(output_path, "w", encoding="utf-8") as f:
-            json.dump(output_data, f, indent=2, ensure_ascii=False)
-        print(f"  Saved {len(works)} works to: {output_path.name}")
+    output_data = {
+        "metadata": {
+            "original_name": original_name,
+            "openalex_id": openalex_id,
+            "openalex_name": openalex_name,
+            "category": category,
+            "filter_used": filter_str,
+            "fetch_date": datetime.now().isoformat(),
+            "total_works": len(works),
+            "date_range": f"{START_DATE} to present",
+        },
+        "works": works,
+    }
+    output_path = category_dir / f"{safe_name}.json"
+    with open(output_path, "w", encoding="utf-8") as f:
+        json.dump(output_data, f, indent=2, ensure_ascii=False)
+    print(f"  Saved {len(works)} works to: {output_path.name}")
 
-    # Build lightweight DOI sidecar
-    # display_name is used when select is active; title is the fallback for full fetches
+    # Build lightweight DOI sidecar (with last author from full works)
     doi_list = []
     for work in works:
-        doi = work.get("doi")
-        pub_date = work.get("publication_date")
-        title = (work.get("display_name") or work.get("title") or "")[:100]
-        if doi:
-            doi_list.append({
-                "doi": doi,
-                "publication_date": pub_date,
-                "title": title,
-                "cited_by_count": work.get("cited_by_count", 0),
-            })
+        row = work_to_doi_row(work)
+        if row:
+            doi_list.append(row)
 
     doi_path = category_dir / f"{safe_name}_dois.json"
     with open(doi_path, "w", encoding="utf-8") as f:
-        json.dump({
-            "entity": original_name,
-            "total_works": len(works),
-            "works_with_doi": len(doi_list),
-            "dois": doi_list,
-        }, f, indent=2, ensure_ascii=False)
+        json.dump(
+            {
+                "entity": original_name,
+                "total_works": len(works),
+                "works_with_doi": len(doi_list),
+                "dois": doi_list,
+            },
+            f,
+            indent=2,
+            ensure_ascii=False,
+        )
 
     return len(works)
 
@@ -278,8 +536,13 @@ def main():
         "--dois-only", action="store_true",
         help="Save only the lightweight _dois.json sidecar; skip the full works JSON"
     )
+    parser.add_argument(
+        "--force", action="store_true",
+        help="Re-fetch from scratch even when output/partial files exist (overwrite)",
+    )
     args = parser.parse_args()
     dois_only: bool = args.dois_only
+    force: bool = args.force
 
     print("=" * 70)
     print("OpenAlex Publication Fetcher")
@@ -287,6 +550,9 @@ def main():
     print(f"Email: {EMAIL}")
     if dois_only:
         print("Mode: DOIs-only (skipping full works JSON)")
+        print("Resume: incomplete entities continue from *_dois.partial.json")
+    if force:
+        print("Mode: FORCE re-fetch (existing outputs/partials will be overwritten)")
     print("=" * 70)
 
     # Create output directory
@@ -329,13 +595,22 @@ def main():
         safe_name = sanitize_filename(original_name)
         category_dir = OUTPUT_DIR / f"{category.capitalize()}s"
         done_file = category_dir / (f"{safe_name}_dois.json" if dois_only else f"{safe_name}.json")
-        if done_file.exists():
-            print(f"  Output file exists, skipping (delete to re-fetch)")
+        if done_file.exists() and not force:
+            print(f"  Output file exists, skipping (delete to re-fetch, or pass --force)")
             processed_ids.add(openalex_id)
             results[category]["skipped"] += 1
             continue
+        if done_file.exists() and force:
+            print(f"  Output file exists — re-fetching (--force)")
 
-        works_count = process_entity(category, original_name, openalex_id, openalex_name, dois_only=dois_only)
+        works_count = process_entity(
+            category,
+            original_name,
+            openalex_id,
+            openalex_name,
+            dois_only=dois_only,
+            force=force,
+        )
         processed_ids.add(openalex_id)
 
         if works_count:

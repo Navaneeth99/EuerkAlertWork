@@ -1,7 +1,8 @@
 """Extract DOIs from PublicationData into Processed/DOIList.csv.
 
 Uses lightweight *_dois.json sidecars (~MB) instead of full work JSON (~GB).
-Streams rows to CSV so memory stays bounded. Run from a terminal, not the IDE:
+Streams rows to CSV so memory stays bounded. Includes last-author fields for
+fixed-effects specs. Run from a terminal, not the IDE:
 
   python code/03_extract_dois.py
 """
@@ -15,6 +16,18 @@ ROOT = Path(__file__).parent.parent
 PUB = ROOT / "rawdata" / "PublicationData"
 XW = ROOT / "rawdata" / "Institution_OpenAlexCrossWalk/openalex_crosswalk_clean.csv"
 OUT = ROOT / "Processed" / "DOIList.csv"
+
+DOI_HEADER = [
+    "entity_name",
+    "openalex_id",
+    "category",
+    "doi",
+    "publication_date",
+    "title",
+    "cited_by_count",
+    "last_author_id",
+    "last_author_name",
+]
 
 
 def load_entity_lookup():
@@ -32,6 +45,24 @@ def clean_doi(doi):
     return doi[16:] if doi.startswith("https://doi.org/") else doi
 
 
+def extract_last_author(work: dict) -> tuple[str, str]:
+    """Mirror 02_fetch_publications.extract_last_author for full-work JSON fallback."""
+    authorships = work.get("authorships") or []
+    chosen = None
+    for authorship in authorships:
+        if authorship.get("author_position") == "last":
+            chosen = authorship
+            break
+    if chosen is None and authorships:
+        chosen = authorships[-1]
+    if not chosen:
+        return "", ""
+    author = chosen.get("author") or {}
+    author_id = (author.get("id") or "").rsplit("/", 1)[-1]
+    name = (author.get("display_name") or chosen.get("raw_author_name") or "").strip()
+    return author_id, name
+
+
 def iter_dois_file(path, lookup):
     data = json.loads(path.read_text(encoding="utf-8"))
     entity = data.get("entity", "")
@@ -44,7 +75,19 @@ def iter_dois_file(path, lookup):
                 continue
             title = (item.get("title") or item.get("display_name") or "").strip()
             cited = item.get("cited_by_count") or 0
-            yield ent, oa_id, cat, clean_doi(doi), item.get("publication_date", ""), title, cited
+            last_id = (item.get("last_author_id") or "").strip()
+            last_name = (item.get("last_author_name") or "").strip()
+            yield (
+                ent,
+                oa_id,
+                cat,
+                clean_doi(doi),
+                item.get("publication_date", ""),
+                title,
+                cited,
+                last_id,
+                last_name,
+            )
         return
 
     meta = data.get("metadata", {})
@@ -57,7 +100,18 @@ def iter_dois_file(path, lookup):
             continue
         title = (work.get("title") or work.get("display_name") or "").strip()
         cited = work.get("cited_by_count") or 0
-        yield ent, oa_id, cat, clean_doi(doi), work.get("publication_date", ""), title, cited
+        last_id, last_name = extract_last_author(work)
+        yield (
+            ent,
+            oa_id,
+            cat,
+            clean_doi(doi),
+            work.get("publication_date", ""),
+            title,
+            cited,
+            last_id,
+            last_name,
+        )
 
 
 def data_files():
@@ -91,11 +145,12 @@ def main():
 
     print(f"Processing {len(files)} files (smallest first)...")
     total = 0
+    with_last = 0
     by_cat = Counter()
 
     with OUT.open("w", newline="", encoding="utf-8") as out:
         w = csv.writer(out)
-        w.writerow(["entity_name", "openalex_id", "category", "doi", "publication_date", "title", "cited_by_count"])
+        w.writerow(DOI_HEADER)
         for i, path in enumerate(files, 1):
             mb = path.stat().st_size / (1024 * 1024)
             print(f"[{i}/{len(files)}] {path.name[:55]:<55} {mb:7.1f} MB", flush=True)
@@ -104,10 +159,13 @@ def main():
                 w.writerow(row)
                 n += 1
                 by_cat[row[2]] += 1
+                if row[7]:
+                    with_last += 1
             total += n
             print(f"  -> {n:,} rows (running total {total:,})", flush=True)
 
     print(f"\nWrote {total:,} rows to {OUT} ({OUT.stat().st_size / 1024 / 1024:.1f} MB)")
+    print(f"  with last_author_id: {with_last:,} ({100 * with_last / total:.1f}%)" if total else "")
     for cat, n in sorted(by_cat.items()):
         print(f"  {cat or '(unknown)'}: {n:,}")
 

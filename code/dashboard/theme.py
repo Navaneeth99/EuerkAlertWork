@@ -1,59 +1,66 @@
-"""Streamlit theme helpers matching the report McKinsey chart style (Calibri, navy)."""
+"""Streamlit chrome theme matching the HTML report (#1F4E79 navy)."""
 
 from __future__ import annotations
 
 import streamlit as st
 
-from dashboard.plotly_charts import (
-    ACCENT_COLOR,
-    FONT_FAMILY,
-    GRID_COLOR,
-    MUTED_TEXT,
-    SUBTITLE_TEXT,
-    TEXT_COLOR,
-    WITH_PR_COLOR,
-)
+NAVY = "#1F4E79"
+NAVY_DARK = "#163A5C"
+MUTED = "#5A6A7A"
+GRID = "#D5E0EB"
+FONT = "'Source Sans 3', Calibri, Arial, sans-serif"
 
 
 def apply_report_theme() -> None:
-    """Inject CSS so the dashboard uses the same font/colors as the report charts."""
+    """Inject CSS so Streamlit chrome matches the report template."""
     css = f"""
 <style>
 html, body, [class*="css"], .stApp, .stMarkdown, .stText, .stSelectbox,
 .stMultiSelect, .stSlider, .stCheckbox, .stMetric, .stDataFrame, .stCaption,
 button, input, textarea, label {{
-  font-family: {FONT_FAMILY} !important;
-  color: {TEXT_COLOR};
+  font-family: {FONT} !important;
+  color: {NAVY_DARK};
 }}
 h1, h2, h3, h4 {{
-  font-family: {FONT_FAMILY} !important;
-  color: {ACCENT_COLOR} !important;
+  font-family: {FONT} !important;
+  color: {NAVY} !important;
   font-weight: 700 !important;
 }}
 .stCaption, .stMarkdown p {{
-  color: {SUBTITLE_TEXT};
-}}
-.stMetric label {{
-  color: {MUTED_TEXT} !important;
-  font-family: {FONT_FAMILY} !important;
-}}
-.stMetric [data-testid="stMetricValue"] {{
-  color: {ACCENT_COLOR} !important;
-  font-family: {FONT_FAMILY} !important;
+  color: {MUTED};
 }}
 div[data-testid="stSidebar"] {{
-  background-color: #FAFAFA;
-  border-right: 1px solid {GRID_COLOR};
+  display: none !important;
 }}
-div[data-testid="stSidebar"] * {{
-  font-family: {FONT_FAMILY} !important;
+section[data-testid="stSidebar"] {{
+  display: none !important;
 }}
-/* Match report accent for interactive widgets */
-.stSlider [data-baseweb="slider"] div[role="slider"] {{
-  background-color: {WITH_PR_COLOR} !important;
+/* Hide collapsed sidebar control */
+button[kind="header"] {{
+  display: none !important;
+}}
+[data-testid="collapsedControl"] {{
+  display: none !important;
+}}
+header[data-testid="stHeader"] {{
+  background: transparent;
+}}
+/* Hide iframe chrome from st.components.html */
+iframe {{
+  border: none !important;
+}}
+footer {{
+  display: none !important;
+}}
+.block-container {{
+  padding-top: 0.5rem !important;
+  padding-bottom: 0 !important;
+  padding-left: 1rem !important;
+  padding-right: 1rem !important;
+  max-width: 1200px !important;
 }}
 hr {{
-  border-color: {GRID_COLOR} !important;
+  border-color: {GRID} !important;
 }}
 </style>
 """

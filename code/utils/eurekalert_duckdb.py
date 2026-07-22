@@ -131,8 +131,9 @@ def _doi_view_sql() -> str | None:
     if not doi_path.exists():
         return None
     p = doi_path.as_posix()
+    # SELECT * so new columns (e.g. last_author_*) appear after re-extract.
     return f"""
-        SELECT entity_name, openalex_id, category, doi, publication_date, title, cited_by_count
+        SELECT *
         FROM read_csv('{p}', header=true, auto_detect=true)
     """
 
