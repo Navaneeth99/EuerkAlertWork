@@ -7,7 +7,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-from utils.impact_analysis import pub_year_range, short_entity_name
+from utils.impact_analysis import short_entity_name
 
 
 def _load_altmet_source_count() -> int | None:
@@ -119,7 +119,10 @@ def build_report_payload(
     n_without = n_total - n_with
     pct = (100.0 * n_with / n_total) if n_total else 0.0
 
-    year_min, year_max = pub_year_range(df["pub_year"]) if "pub_year" in df.columns else (None, None)
+    year_min = year_max = None
+    if "pub_year" in df.columns and df["pub_year"].notna().any():
+        year_min = int(df["pub_year"].min())
+        year_max = int(df["pub_year"].max())
     years = (
         f"{year_min}–{year_max}"
         if year_min is not None and year_max is not None
