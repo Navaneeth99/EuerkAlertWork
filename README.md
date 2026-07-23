@@ -102,21 +102,22 @@ filled with live numbers from `Processed/dashboard/`.
 
 The app reads a **prebuilt cache** under `Processed/dashboard/` (no DuckDB/Altmetric query on startup):
 
-- `paper_df.parquet` — slim paper-level metrics (includes `last_author_id` / `last_author_name`)
+- `paper_df.parquet` — slim paper-level metrics (includes `last_author_id` / `last_author_name`, `field_id` / `field_name`)
 - `overview/by_category/*.csv` — Section 1 stats for every category combination
 - `coefficients/by_category/*.csv` — entity FE coefficients (`y ~ has_pr | entity_name`)
+- `coefficients/by_field/*.csv` — field FE coefficients (`y ~ has_pr | field_id`, OpenAlex primary_topic.field)
 - `coefficients/by_last_author/*.csv` — last-author FE coefficients (`y ~ has_pr | last_author_id`)
 - `meta.json` — row counts / build timestamp / combo index
 
 ### Prerequisites (local rebuild)
 
-1. Fetch publication DOIs (slim sidecar; no checkpoints in `--dois-only`):
+1. Fetch publication DOIs (slim sidecar with last author + OpenAlex field; resumable partial checkpoints):
 
 ```bash
 python code/02_fetch_publications.py --dois-only
 ```
 
-2. Rebuild `Processed/DOIList.csv`:
+2. Rebuild `Processed/DOIList.csv` (includes `field_id`, `field_name` from OpenAlex `primary_topic.field`):
 
 ```bash
 python code/03_extract_dois.py
@@ -128,7 +129,7 @@ python code/03_extract_dois.py
 
 5. Altmetric deliverable CSV is present at `rawdata/AltMetData/aaas_deliverable_20260415.csv`.
 
-6. Export the dashboard cache (entity FE + last-author FE):
+6. Export the dashboard cache (entity FE + field FE + last-author FE):
 
 ```bash
 python code/08_export_dashboard_data.py

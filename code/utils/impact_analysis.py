@@ -19,6 +19,35 @@ DEFAULT_PAPER_PARQUET = DEFAULT_DASHBOARD_DIR / "paper_df.parquet"
 DEFAULT_COEF_CSV = DEFAULT_DASHBOARD_DIR / "coefficient_forest.csv"
 DEFAULT_DASHBOARD_META = DEFAULT_DASHBOARD_DIR / "meta.json"
 
+
+def count_csv_data_rows(csv_path: Path) -> int:
+    """Count data rows in a CSV (excludes header). Does not load into memory."""
+    path = Path(csv_path)
+    if not path.exists():
+        return 0
+    with path.open(encoding="utf-8", errors="replace") as f:
+        next(f, None)  # header
+        return sum(1 for _ in f)
+
+
+def load_altmet_source_count(
+    *,
+    meta_path: Path = DEFAULT_DASHBOARD_META,
+    altmet_csv: Path = DEFAULT_ALTMET_CSV,
+) -> int | None:
+    """Rows in the Altmetric deliverable CSV (Figure 1.1 upstream source)."""
+    path = Path(meta_path)
+    if path.exists():
+        try:
+            meta = json.loads(path.read_text(encoding="utf-8"))
+            n = meta.get("n_altmet_source")
+            if n is not None:
+                return int(n)
+        except (OSError, json.JSONDecodeError, TypeError, ValueError):
+            pass
+    n = count_csv_data_rows(altmet_csv)
+    return n if n > 0 else None
+
 # Columns needed by the Streamlit dashboard (keeps the on-disk file small/fast).
 DASHBOARD_COLUMNS = [
     "entity_name",
@@ -39,6 +68,8 @@ DASHBOARD_COLUMNS = [
     "total_mentions",
     "last_author_id",
     "last_author_name",
+    "field_id",
+    "field_name",
 ]
 
 MENTION_COLS = [
@@ -199,10 +230,10 @@ def load_paper_df(
     doi_list["doi_norm"] = doi_list["doi"].str.lower().str.strip()
 
     doi_cols = ["doi_norm", "cited_by_count"]
-    for col in ("last_author_id", "last_author_name"):
+    for col in ("last_author_id", "last_author_name", "field_id", "field_name"):
         if col in doi_list.columns:
             doi_cols.append(col)
-    # One row per DOI for author fields (first entity wins if duplicated).
+    # One row per DOI for author/field fields (first entity wins if duplicated).
     doi_author = (
         doi_list[doi_cols]
         .drop_duplicates("doi_norm", keep="first")
@@ -234,8 +265,14 @@ def load_paper_df(
         paper_df["last_author_id"] = ""
     if "last_author_name" not in paper_df.columns:
         paper_df["last_author_name"] = ""
+    if "field_id" not in paper_df.columns:
+        paper_df["field_id"] = ""
+    if "field_name" not in paper_df.columns:
+        paper_df["field_name"] = ""
     paper_df["last_author_id"] = paper_df["last_author_id"].fillna("").astype(str)
     paper_df["last_author_name"] = paper_df["last_author_name"].fillna("").astype(str)
+    paper_df["field_id"] = paper_df["field_id"].fillna("").astype(str)
+    paper_df["field_name"] = paper_df["field_name"].fillna("").astype(str)
 
     usable_weights = {k: v for k, v in ATTENTION_WEIGHTS.items() if k in paper_df.columns}
     paper_df["attention_score"] = sum(
@@ -251,7 +288,7 @@ def load_paper_df(
 def slim_paper_df_for_dashboard(paper_df: pd.DataFrame) -> pd.DataFrame:
     """Keep only columns required by the Streamlit dashboard."""
     out = paper_df.copy()
-    for col in ("last_author_id", "last_author_name"):
+    for col in ("last_author_id", "last_author_name", "field_id", "field_name"):
         if col not in out.columns:
             out[col] = ""
     missing = [c for c in DASHBOARD_COLUMNS if c not in out.columns]
@@ -263,6 +300,8 @@ def slim_paper_df_for_dashboard(paper_df: pd.DataFrame) -> pd.DataFrame:
         out["pub_year"] = pd.to_numeric(out["pub_year"], errors="coerce")
     out["last_author_id"] = out["last_author_id"].fillna("").astype(str)
     out["last_author_name"] = out["last_author_name"].fillna("").astype(str)
+    out["field_id"] = out["field_id"].fillna("").astype(str)
+    out["field_name"] = out["field_name"].fillna("").astype(str)
     return out
 
 
@@ -297,6 +336,10 @@ def coefficients_last_author_dir(out_dir: Path = DEFAULT_DASHBOARD_DIR) -> Path:
     return Path(out_dir) / "coefficients" / "by_last_author"
 
 
+def coefficients_field_dir(out_dir: Path = DEFAULT_DASHBOARD_DIR) -> Path:
+    return Path(out_dir) / "coefficients" / "by_field"
+
+
 def coef_path_for_categories(
     categories: list[str] | tuple[str, ...],
     *,
@@ -305,6 +348,8 @@ def coef_path_for_categories(
 ) -> Path:
     if fe == "last_author":
         return coefficients_last_author_dir(out_dir) / f"{category_combo_key(categories)}.csv"
+    if fe == "field":
+        return coefficients_field_dir(out_dir) / f"{category_combo_key(categories)}.csv"
     return coefficients_dir(out_dir) / f"{category_combo_key(categories)}.csv"
 
 
@@ -331,6 +376,7 @@ def save_dashboard_cache(
     *,
     out_dir: Path = DEFAULT_DASHBOARD_DIR,
     include_coefficients: bool = True,
+    n_altmet_source: int | None = None,
 ) -> dict[str, Path]:
     """Write paper_df + per-category-combo overview/FE caches for Streamlit."""
     from datetime import datetime, timezone
@@ -357,6 +403,8 @@ def save_dashboard_cache(
     print(f"  Writing caches for {len(combos)} category combinations …")
     last_author_dir = coefficients_last_author_dir(out_dir)
     last_author_dir.mkdir(parents=True, exist_ok=True)
+    field_dir = coefficients_field_dir(out_dir)
+    field_dir.mkdir(parents=True, exist_ok=True)
 
     for combo in combos:
         subset = impute_mention_zeros(filter_by_categories(slim, combo))
@@ -367,6 +415,7 @@ def save_dashboard_cache(
 
         coef_ok = False
         last_author_ok = False
+        field_ok = False
         if include_coefficients:
             n_with = int(subset["has_pr"].sum())
             n_without = int((~subset["has_pr"]).sum())
@@ -384,6 +433,31 @@ def save_dashboard_cache(
                         paths["coefficients"] = legacy
                 except Exception as exc:  # noqa: BLE001
                     print(f"  Skipping entity FE cache for {key}: {exc}")
+
+            n_fields = int(
+                subset.loc[subset["field_id"].astype(str).str.len() > 0, "field_id"]
+                .nunique()
+            ) if "field_id" in subset.columns else 0
+            if (
+                len(subset) >= 50
+                and n_with >= 5
+                and n_without >= 5
+                and n_fields >= 2
+            ):
+                try:
+                    field_df = fit_coefficient_forest(subset, fe_col="field_id")
+                    field_path = coef_path_for_categories(
+                        combo, out_dir=out_dir, fe="field"
+                    )
+                    field_df.to_csv(field_path, index=False)
+                    paths[f"coefficients_field:{key}"] = field_path
+                    field_ok = True
+                    if list(combo) == all_categories:
+                        legacy_field = out_dir / "coefficient_forest_field.csv"
+                        field_df.to_csv(legacy_field, index=False)
+                        paths["coefficients_field"] = legacy_field
+                except Exception as exc:  # noqa: BLE001
+                    print(f"  Skipping field FE cache for {key}: {exc}")
 
             n_authors = int(
                 subset.loc[subset["last_author_id"].astype(str).str.len() > 0, "last_author_id"]
@@ -417,12 +491,15 @@ def save_dashboard_cache(
                 "n_papers": int(len(subset)),
                 "n_with_pr": int(subset["has_pr"].sum()),
                 "has_coefficients": coef_ok,
+                "has_field_coefficients": field_ok,
                 "has_last_author_coefficients": last_author_ok,
             }
         )
         flags = []
         if coef_ok:
             flags.append("entity FE")
+        if field_ok:
+            flags.append("field FE")
         if last_author_ok:
             flags.append("last-author FE")
         print(
@@ -434,7 +511,11 @@ def save_dashboard_cache(
         "created_at_utc": datetime.now(timezone.utc).isoformat(),
         "n_papers": int(len(slim)),
         "n_with_pr": int(slim["has_pr"].sum()),
+        "n_altmet_source": int(n_altmet_source) if n_altmet_source is not None else None,
         "n_entities": int(slim["entity_name"].nunique()),
+        "n_fields": int(
+            slim.loc[slim["field_id"].astype(str).str.len() > 0, "field_id"].nunique()
+        ) if "field_id" in slim.columns else 0,
         "year_min": int(slim["pub_year"].min()) if slim["pub_year"].notna().any() else None,
         "year_max": int(slim["pub_year"].max()) if slim["pub_year"].notna().any() else None,
         "columns": list(slim.columns),
@@ -464,7 +545,7 @@ def load_paper_df_from_cache(
     paper_df = pd.read_parquet(path)
     if "has_pr" in paper_df.columns:
         paper_df["has_pr"] = paper_df["has_pr"].astype(bool)
-    for col in ("last_author_id", "last_author_name"):
+    for col in ("last_author_id", "last_author_name", "field_id", "field_name"):
         if col not in paper_df.columns:
             paper_df[col] = ""
         else:

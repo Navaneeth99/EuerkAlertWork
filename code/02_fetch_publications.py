@@ -157,12 +157,22 @@ def extract_last_author(work: dict) -> tuple[str, str]:
     return author_id, name
 
 
+def extract_field(work: dict) -> tuple[str, str]:
+    """Return (openalex_field_id, display_name) from primary_topic.field."""
+    topic = work.get("primary_topic") or {}
+    field = topic.get("field") or {}
+    field_id = extract_short_id(field.get("id") or "")
+    field_name = (field.get("display_name") or "").strip()
+    return field_id, field_name
+
+
 def work_to_doi_row(work: dict) -> dict | None:
-    """Slim DOI sidecar row, including last-author fields when authorships are present."""
+    """Slim DOI sidecar row, including last-author and field when present."""
     doi = work.get("doi")
     if not doi:
         return None
     last_author_id, last_author_name = extract_last_author(work)
+    field_id, field_name = extract_field(work)
     return {
         "doi": doi,
         "publication_date": work.get("publication_date"),
@@ -170,6 +180,8 @@ def work_to_doi_row(work: dict) -> dict | None:
         "cited_by_count": work.get("cited_by_count", 0),
         "last_author_id": last_author_id,
         "last_author_name": last_author_name,
+        "field_id": field_id,
+        "field_name": field_name,
     }
 
 
@@ -430,7 +442,9 @@ def process_entity(
     if dois_only:
         # Include authorships for last_author_*; slim each page immediately so
         # we never hold ~600k full work objects in memory.
-        doi_select = "id,doi,display_name,publication_date,cited_by_count,authorships"
+        doi_select = (
+            "id,doi,display_name,publication_date,cited_by_count,authorships,primary_topic"
+        )
         doi_list, n_fetched = fetch_works_cursor(
             filter_str,
             original_name,
@@ -461,7 +475,7 @@ def process_entity(
                 indent=2,
                 ensure_ascii=False,
             )
-        print(f"  Saved {len(doi_list):,} DOIs (+ last author) to: {doi_path.name}")
+        print(f"  Saved {len(doi_list):,} DOIs (+ last author, field) to: {doi_path.name}")
         return n_fetched
 
     works, n_fetched = fetch_works_cursor(

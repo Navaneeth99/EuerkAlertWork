@@ -1,8 +1,8 @@
 """Extract DOIs from PublicationData into Processed/DOIList.csv.
 
 Uses lightweight *_dois.json sidecars (~MB) instead of full work JSON (~GB).
-Streams rows to CSV so memory stays bounded. Includes last-author fields for
-fixed-effects specs. Run from a terminal, not the IDE:
+Streams rows to CSV so memory stays bounded. Includes last-author and OpenAlex
+field (primary_topic.field) for fixed-effects specs. Run from a terminal:
 
   python code/03_extract_dois.py
 """
@@ -27,6 +27,8 @@ DOI_HEADER = [
     "cited_by_count",
     "last_author_id",
     "last_author_name",
+    "field_id",
+    "field_name",
 ]
 
 
@@ -63,6 +65,15 @@ def extract_last_author(work: dict) -> tuple[str, str]:
     return author_id, name
 
 
+def extract_field(work: dict) -> tuple[str, str]:
+    """Mirror 02_fetch_publications.extract_field for full-work JSON fallback."""
+    topic = work.get("primary_topic") or {}
+    field = topic.get("field") or {}
+    field_id = (field.get("id") or "").rsplit("/", 1)[-1]
+    field_name = (field.get("display_name") or "").strip()
+    return field_id, field_name
+
+
 def iter_dois_file(path, lookup):
     data = json.loads(path.read_text(encoding="utf-8"))
     entity = data.get("entity", "")
@@ -77,6 +88,8 @@ def iter_dois_file(path, lookup):
             cited = item.get("cited_by_count") or 0
             last_id = (item.get("last_author_id") or "").strip()
             last_name = (item.get("last_author_name") or "").strip()
+            field_id = (item.get("field_id") or "").strip()
+            field_name = (item.get("field_name") or "").strip()
             yield (
                 ent,
                 oa_id,
@@ -87,6 +100,8 @@ def iter_dois_file(path, lookup):
                 cited,
                 last_id,
                 last_name,
+                field_id,
+                field_name,
             )
         return
 
@@ -101,6 +116,7 @@ def iter_dois_file(path, lookup):
         title = (work.get("title") or work.get("display_name") or "").strip()
         cited = work.get("cited_by_count") or 0
         last_id, last_name = extract_last_author(work)
+        field_id, field_name = extract_field(work)
         yield (
             ent,
             oa_id,
@@ -111,6 +127,8 @@ def iter_dois_file(path, lookup):
             cited,
             last_id,
             last_name,
+            field_id,
+            field_name,
         )
 
 
@@ -146,6 +164,7 @@ def main():
     print(f"Processing {len(files)} files (smallest first)...")
     total = 0
     with_last = 0
+    with_field = 0
     by_cat = Counter()
 
     with OUT.open("w", newline="", encoding="utf-8") as out:
@@ -161,11 +180,14 @@ def main():
                 by_cat[row[2]] += 1
                 if row[7]:
                     with_last += 1
+                if row[9]:
+                    with_field += 1
             total += n
             print(f"  -> {n:,} rows (running total {total:,})", flush=True)
 
     print(f"\nWrote {total:,} rows to {OUT} ({OUT.stat().st_size / 1024 / 1024:.1f} MB)")
     print(f"  with last_author_id: {with_last:,} ({100 * with_last / total:.1f}%)" if total else "")
+    print(f"  with field_id: {with_field:,} ({100 * with_field / total:.1f}%)" if total else "")
     for cat, n in sorted(by_cat.items()):
         print(f"  {cat or '(unknown)'}: {n:,}")
 

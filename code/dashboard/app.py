@@ -31,7 +31,9 @@ REPORT_TEMPLATE = Path(__file__).resolve().parent / "report_template.html"
 DCLOGIC_JS = Path(__file__).resolve().parent / "assets" / "dclogic.js"
 
 import dashboard.report_data as _report_data  # noqa: E402
+import utils.impact_analysis as _impact_analysis  # noqa: E402
 
+importlib.reload(_impact_analysis)
 importlib.reload(_report_data)
 from dashboard.report_data import (  # noqa: E402
     build_report_payload,
@@ -105,8 +107,8 @@ def main() -> None:
         st.error(f"Failed to load dashboard cache: {exc}")
         st.stop()
 
-    # Older parquet caches predate last-author enrichment.
-    for col in ("last_author_id", "last_author_name"):
+    # Older parquet caches predate last-author / field enrichment.
+    for col in ("last_author_id", "last_author_name", "field_id", "field_name"):
         if col not in paper_df.columns:
             paper_df[col] = ""
 
@@ -129,6 +131,9 @@ def main() -> None:
         journal_coef_df = cached_read_coef_for_categories(
             ("journal",), str(DEFAULT_DASHBOARD_DIR), "entity"
         )
+        field_coef_df = cached_read_coef_for_categories(
+            cats_key, str(DEFAULT_DASHBOARD_DIR), "field"
+        )
         last_author_coef_df = cached_read_coef_for_categories(
             cats_key, str(DEFAULT_DASHBOARD_DIR), "last_author"
         )
@@ -140,17 +145,23 @@ def main() -> None:
         coef_df = _load(list(cats_key), out_dir=DEFAULT_DASHBOARD_DIR)
         university_coef_df = _load(["institution"], out_dir=DEFAULT_DASHBOARD_DIR)
         journal_coef_df = _load(["journal"], out_dir=DEFAULT_DASHBOARD_DIR)
+        field_coef_df = _load(list(cats_key), out_dir=DEFAULT_DASHBOARD_DIR, fe="field")
         last_author_coef_df = None
 
     n_with = int(paper_df["has_pr"].sum())
     n_without = len(paper_df) - n_with
     n_entities = int(paper_df["entity_name"].nunique())
     n_authors = 0
+    n_fields = 0
     if "last_author_id" in paper_df.columns:
         n_authors = int(
             paper_df.loc[
                 paper_df["last_author_id"].astype(str).str.len() > 0, "last_author_id"
             ].nunique()
+        )
+    if "field_id" in paper_df.columns:
+        n_fields = int(
+            paper_df.loc[paper_df["field_id"].astype(str).str.len() > 0, "field_id"].nunique()
         )
 
     can_fit = (
@@ -177,6 +188,11 @@ def main() -> None:
                 journal_coef_df = cached_fit_coefficients(jour, "entity_name")
             except Exception:  # noqa: BLE001
                 journal_coef_df = None
+    if field_coef_df is None and can_fit and n_fields >= 2:
+        try:
+            field_coef_df = cached_fit_coefficients(paper_df, "field_id")
+        except Exception:  # noqa: BLE001
+            field_coef_df = None
     if last_author_coef_df is None and can_fit and n_authors >= 2:
         try:
             last_author_coef_df = cached_fit_coefficients(paper_df, "last_author_id")
@@ -188,6 +204,7 @@ def main() -> None:
         coef_df,
         university_coef_df=university_coef_df,
         journal_coef_df=journal_coef_df,
+        field_coef_df=field_coef_df,
         last_author_coef_df=last_author_coef_df,
     )
     template, dclogic = load_report_assets(

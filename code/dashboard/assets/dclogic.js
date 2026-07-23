@@ -570,9 +570,13 @@
         { key },
         list.map((item, i) => {
           const sub = { ...vals, [asName]: item, $index: i };
+          const itemKey =
+            item != null && typeof item === "object" && item.rowKey != null
+              ? item.rowKey
+              : i;
           return h(
             getReact().Fragment,
-            { key: i },
+            { key: itemKey },
             kids.map((b, j) => b(sub, ctx, j))
           );
         })

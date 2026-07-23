@@ -9,6 +9,35 @@ import pandas as pd
 
 from utils.impact_analysis import short_entity_name
 
+
+def _load_altmet_source_count() -> int | None:
+    """Altmetric deliverable row count for Figure 1.1 (lazy import for Streamlit reload)."""
+    try:
+        from utils.impact_analysis import load_altmet_source_count
+
+        return load_altmet_source_count()
+    except ImportError:
+        import json
+        from pathlib import Path
+
+        root = Path(__file__).resolve().parents[2]
+        meta_path = root / "Processed" / "dashboard" / "meta.json"
+        altmet_csv = root / "rawdata" / "AltMetData" / "aaas_deliverable_20260415.csv"
+        if meta_path.exists():
+            try:
+                meta = json.loads(meta_path.read_text(encoding="utf-8"))
+                n = meta.get("n_altmet_source")
+                if n is not None:
+                    return int(n)
+            except (OSError, json.JSONDecodeError, TypeError, ValueError):
+                pass
+        if altmet_csv.exists():
+            with altmet_csv.open(encoding="utf-8", errors="replace") as f:
+                next(f, None)
+                n = sum(1 for _ in f)
+            return n if n > 0 else None
+        return None
+
 # Template metric keys → paper_df columns (order matches the report Component).
 # coef_label matches the `metric` column written by fit_coefficient_forest.
 REPORT_METRICS: list[tuple[str, str, str, str]] = [
@@ -33,6 +62,15 @@ def _safe_mean(s: pd.Series) -> float:
     return float(s.mean()) if len(s) else 0.0
 
 
+def _diff_se(with_vals: pd.Series, without_vals: pd.Series) -> float:
+    """Standard error of mean(with) − mean(without) for raw comparison CIs."""
+    w = pd.to_numeric(with_vals, errors="coerce").dropna()
+    wo = pd.to_numeric(without_vals, errors="coerce").dropna()
+    if len(w) < 2 or len(wo) < 2:
+        return 0.0
+    return float(np.sqrt(w.var(ddof=1) / len(w) + wo.var(ddof=1) / len(wo)))
+
+
 def _coef_lookup(coef_df: pd.DataFrame | None) -> dict[str, tuple[float, float]]:
     """Map display/coef metric label → (coef, se)."""
     out: dict[str, tuple[float, float]] = {}
@@ -53,7 +91,9 @@ def build_report_payload(
     *,
     university_coef_df: pd.DataFrame | None = None,
     journal_coef_df: pd.DataFrame | None = None,
+    field_coef_df: pd.DataFrame | None = None,
     last_author_coef_df: pd.DataFrame | None = None,
+    n_altmet_source: int | None = None,
     entities_per_panel: int = 8,
     max_entities: int | None = None,
 ) -> dict[str, Any]:
@@ -63,6 +103,7 @@ def build_report_payload(
       raw         — mean(with PR) − mean(without PR); shown as baseline reference on FE specs
       university  — entity FE on institution-category papers only
       journal     — entity FE on journal-category papers only
+      field       — field FE (OpenAlex primary_topic.field): y ~ has_pr | field_id
       fe          — entity FE on the full filtered sample (universities + journals)
       last_author — last-author FE (falls back to entity FE if unavailable)
 
@@ -90,29 +131,69 @@ def build_report_payload(
 
     with_pr = df.loc[df["has_pr"]]
     without_pr = df.loc[~df["has_pr"]]
+    inst_df = df.loc[df["category"] == "institution"]
+    jour_df = df.loc[df["category"] == "journal"]
     coef_map = _coef_lookup(coef_df)
     univ_map = _coef_lookup(university_coef_df)
     jour_map = _coef_lookup(journal_coef_df)
+    field_map = _coef_lookup(field_coef_df)
     la_map = _coef_lookup(last_author_coef_df)
     has_last_author = bool(la_map)
+    has_field = bool(field_map)
 
     metrics: list[dict[str, Any]] = []
     for key, col, label, coef_label in REPORT_METRICS:
         wo = _safe_mean(without_pr[col]) if col in without_pr.columns else 0.0
         w = _safe_mean(with_pr[col]) if col in with_pr.columns else 0.0
         raw = w - wo
+        raw_se = (
+            _diff_se(with_pr[col], without_pr[col])
+            if col in with_pr.columns and col in without_pr.columns
+            else 0.0
+        )
         fe, se = coef_map.get(coef_label, (raw, 0.0))
-        univ, _univ_se = univ_map.get(coef_label, (fe, se))
-        jour, _jour_se = jour_map.get(coef_label, (fe, se))
+        univ, univ_se = univ_map.get(coef_label, (fe, se))
+        jour, jour_se = jour_map.get(coef_label, (fe, se))
+        fld, fld_se = field_map.get(coef_label, (fe, se))
         la, la_se = la_map.get(coef_label, (fe, se))
+        inst_wo = (
+            _safe_mean(inst_df.loc[~inst_df["has_pr"], col])
+            if col in inst_df.columns and len(inst_df)
+            else wo
+        )
+        inst_w = (
+            _safe_mean(inst_df.loc[inst_df["has_pr"], col])
+            if col in inst_df.columns and len(inst_df)
+            else w
+        )
+        jour_wo = (
+            _safe_mean(jour_df.loc[~jour_df["has_pr"], col])
+            if col in jour_df.columns and len(jour_df)
+            else wo
+        )
+        jour_w = (
+            _safe_mean(jour_df.loc[jour_df["has_pr"], col])
+            if col in jour_df.columns and len(jour_df)
+            else w
+        )
         metrics.append(
             {
                 "key": key,
                 "label": label,
                 "wo": wo,
+                "w": w,
+                "woInst": inst_wo,
+                "wInst": inst_w,
+                "woJour": jour_wo,
+                "wJour": jour_w,
                 "raw": raw,
+                "rawSe": raw_se,
                 "univ": univ,
+                "univSe": univ_se,
                 "jour": jour,
+                "jourSe": jour_se,
+                "field": fld,
+                "fieldSe": fld_se,
                 "fe": fe,
                 "lastAuthor": la,
                 "se": se,
@@ -172,12 +253,23 @@ def build_report_payload(
             }
         entity_means[name] = means
 
+    if n_altmet_source is None:
+        n_altmet_source = _load_altmet_source_count()
+
+    n_entities = (
+        int(df["entity_name"].nunique())
+        if "entity_name" in df.columns and n_total
+        else 0
+    )
+
     header = {
         "HDR_N_PAPERS": _fmt_int(n_total),
         "HDR_N_WITH": _fmt_int(n_with),
         "HDR_N_WITHOUT": _fmt_int(n_without),
         "HDR_PCT": f"{pct:.1f}%",
         "HDR_YEARS": years,
+        "HDR_N_ENTITIES": _fmt_int(n_entities),
+        "HDR_N_ALTMET": _fmt_int(n_altmet_source) if n_altmet_source else "—",
     }
 
     la_note = (
@@ -186,6 +278,15 @@ def build_report_payload(
         else (
             "Last-author FE cache not available yet — showing entity FE. "
             "Rebuild the dashboard cache after last-author enrichment."
+        )
+    )
+    field_note = (
+        "Within OpenAlex field comparison: y ~ has_pr | field_id "
+        "(primary_topic.field.display_name)."
+        if has_field
+        else (
+            "Field FE cache not available yet — rebuild after re-fetching DOIs with "
+            "primary_topic and re-running 03_extract_dois.py + 08_export_dashboard_data.py."
         )
     )
 
@@ -208,6 +309,7 @@ def build_report_payload(
                 "Journal fixed effects on journal papers only "
                 "(y ~ has_pr | entity_name, category = journal)."
             ),
+            "field": field_note,
             "fe": (
                 "Entity fixed effects across universities and journals "
                 "(y ~ has_pr | entity_name)."
@@ -218,6 +320,7 @@ def build_report_payload(
         "n_with": n_with,
         "n_without": n_without,
         "has_last_author_fe": has_last_author,
+        "has_field_fe": has_field,
     }
 
 

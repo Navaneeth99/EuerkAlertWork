@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Press Release Impact — Report</title>
+<title>Press Release Impact - Report</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Source+Sans+3:wght@400;600;700&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
@@ -43,7 +43,7 @@ nav .report-nav-link {
   top: 0;
   outline: none;
 }
-/* Invisible hit/focus target — shifted up 16px; label text stays put */
+/* Invisible hit/focus target - shifted up 16px; label text stays put */
 nav .report-nav-link::before {
   content: "";
   position: absolute;
@@ -82,7 +82,7 @@ nav .report-nav-link:focus-visible::before {
 
   <nav style="position:sticky; top:0; z-index:50; background:rgba(255,255,255,.94); backdrop-filter:blur(8px); border-bottom:1px solid oklch(0.9 0.008 255);">
     <div style="max-width:1080px; margin:0 auto; padding:0 40px; height:72px; display:flex; align-items:center; gap:28px;">
-      <div style="font-weight:700; font-size:14.5px; letter-spacing:0.02em; color:#1F4E79; margin-right:auto;">Press Release Impact — Report</div>
+      <div style="font-weight:700; font-size:14.5px; letter-spacing:0.02em; color:#1F4E79; margin-right:auto;">Press Release Impact - Report</div>
       <a class="report-nav-link" href="#s1">1 · Data</a>
       <a class="report-nav-link" href="#s2">2 · Models</a>
       <a class="report-nav-link" href="#s3">3 · Results</a>
@@ -95,8 +95,9 @@ nav .report-nav-link:focus-visible::before {
     <div style="font-size:12.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.16em; color:#1F4E79; margin-bottom:14px;">EurekAlert! matched papers · OpenAlex citations · Altmetric attention</div>
     <h1 style="margin:0; font-family:'Source Serif 4',Georgia,serif; font-size:46px; font-weight:700; line-height:1.12; letter-spacing:-0.01em; color:oklch(0.22 0.03 255); max-width:820px; text-wrap:pretty;">Do press releases have an impact on a research paper?</h1>
     <p style="margin:18px 0 0; font-size:18px; color:oklch(0.45 0.02 255); max-width:720px; text-wrap:pretty;">We match 1.06 million research papers to EurekAlert! press releases and compare their attention scores, socialmedia coverage, and citations - controlling for where each paper was produced and published.</p>
-    <p style="margin:18px 0 0; font-size:18px; color:oklch(0.45 0.02 255); max-width:720px; text-wrap:pretty; font-weight: 600;">  Within the same entity (Instituion/Journal), press-released papers draw ~50× the usual attention and roughly 2–3× as many citations - a large, consistent association with press releases</p>
-    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:38px; max-width:760px;">
+    <p style="margin:18px 0 0; font-size:18px; color:oklch(0.45 0.02 255); max-width:720px; text-wrap:pretty; font-weight: 600;">  From the analysis, we see that within the same entity, press-released papers draw ~50× the usual attention and roughly 2–3× as many citations - a large, consistent association with press releases</p>
+    <p style="margin:28px 0 0; font-size:15px; color:oklch(0.48 0.02 255); max-width:760px; text-wrap:pretty;">We include papers from all <b>__HDR_N_ENTITIES__ entities</b> (universities, journals, and publishers). After joining with EurekAlert! press release data, the sample breaks down as follows:</p>
+    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:18px; max-width:760px;">
       <div style="border-top:3px solid oklch(0.85 0.01 255); padding-top:12px;">
         <div style="font-size:30px; font-weight:700; letter-spacing:-0.01em; font-variant-numeric:tabular-nums;">__HDR_N_PAPERS__</div>
         <div style="font-size:13px; color:oklch(0.5 0.02 255); font-weight:600;">papers, __HDR_YEARS__</div>
@@ -113,7 +114,7 @@ nav .report-nav-link:focus-visible::before {
     <div style="display:flex; gap:22px; margin-top:34px; font-size:13px; font-weight:600; color:oklch(0.45 0.02 255);">
       <span style="display:flex; align-items:center; gap:8px;"><span style="width:13px; height:13px; background:#1F4E79; border-radius:2px;"></span> With press release</span>
       <span style="display:flex; align-items:center; gap:8px;"><span style="width:13px; height:13px; background:#AEBFCE; border-radius:2px;"></span> Without press release</span>
-      <!-- <span style="color:oklch(0.6 0.015 255); font-weight:400;">— used consistently in every figure</span> -->
+      <!-- <span style="color:oklch(0.6 0.015 255); font-weight:400;">- used consistently in every figure</span> -->
     </div>
   </header>
 
@@ -139,54 +140,86 @@ nav .report-nav-link:focus-visible::before {
         </div>
       </div>
 
-      <div style="font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:oklch(0.45 0.02 255); margin-bottom:14px;">Figure 1.1 — How the data comes about</div>
-      <div style="background:#fff; border:1px solid oklch(0.89 0.008 255); border-radius:8px; padding:30px 32px; display:flex; align-items:center; gap:0; overflow-x:auto;">
-        <div style="flex:0 0 190px; border:1.5px solid oklch(0.8 0.015 255); border-radius:6px; padding:14px 16px;">
-          <div style="font-weight:700; font-size:14px;">Research producers</div>
-          <div style="font-size:12.5px; color:oklch(0.5 0.02 255); margin-top:3px;">Universities · journals · publishers</div>
-        </div>
-        <div style="flex:0 0 44px; height:1.5px; background:oklch(0.7 0.02 255); position:relative;"><span style="position:absolute; right:-1px; top:-4.5px; line-height:1; color:oklch(0.7 0.02 255); font-size:13px;">▶</span></div>
-        <div style="flex:0 0 170px; border:1.5px solid oklch(0.8 0.015 255); border-radius:6px; padding:14px 16px;">
-          <div style="font-weight:700; font-size:14px;">__HDR_N_PAPERS__ papers</div>
-          <div style="font-size:12.5px; color:oklch(0.5 0.02 255); margin-top:3px;">published __HDR_YEARS__</div>
-        </div>
-        <div style="flex:0 0 44px; display:flex; flex-direction:column; gap:26px;">
-          <div style="height:1.5px; background:#1F4E79; position:relative; transform:rotate(-14deg);"><span style="position:absolute; right:-1px; top:-4.5px; line-height:1; color:#1F4E79; font-size:13px;">▶</span></div>
-          <div style="height:1.5px; background:oklch(0.75 0.02 255); position:relative; transform:rotate(14deg);"><span style="position:absolute; right:-1px; top:-4.5px; line-height:1; color:oklch(0.75 0.02 255); font-size:13px;">▶</span></div>
-        </div>
-        <div style="flex:0 0 220px; display:flex; flex-direction:column; gap:10px;">
-          <div style="background:#1F4E79; color:#fff; border-radius:6px; padding:11px 15px;">
-            <div style="font-weight:700; font-size:14px;">__HDR_N_WITH__ get a press release</div>
-            <div style="font-size:12px; opacity:.8; margin-top:2px;">matched on EurekAlert!</div>
+      <div style="font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:oklch(0.45 0.02 255); margin-bottom:14px;">Figure 1.1 - How the data comes about</div>
+      <div style="background:#fff; border:1px solid oklch(0.89 0.008 255); border-radius:8px; padding:30px 80px 40px 32px; overflow-x:auto;">
+        <div style="display:flex; align-items:flex-start; gap:0; min-width:980px;">
+          <div style="flex:0 0 190px; border:1.5px solid oklch(0.8 0.015 255); border-radius:6px; padding:14px 16px; align-self:center;">
+            <div style="font-weight:700; font-size:14px;">Research producers (OpenAlex)</div>
+            <div style="font-size:12.5px; color:oklch(0.5 0.02 255); margin-top:3px;">Universities · journals · publishers</div>
           </div>
-          <div style="background:oklch(0.93 0.006 255); border-radius:6px; padding:11px 15px;">
-            <div style="font-weight:700; font-size:14px; color:oklch(0.42 0.02 255);">__HDR_N_WITHOUT__ don’t</div>
-            <div style="font-size:12px; color:oklch(0.55 0.02 255); margin-top:2px;">no matched release</div>
+          <div style="flex:0 0 44px; height:1.5px; background:oklch(0.7 0.02 255); position:relative; align-self:center;"><span style="position:absolute; right:-1px; top:-4.5px; line-height:1; color:oklch(0.7 0.02 255); font-size:13px;">▶</span></div>
+          <div style="flex:0 0 190px; display:flex; flex-direction:column; align-items:stretch; align-self:center;">
+            <div style="border:1.5px solid oklch(0.8 0.015 255); border-radius:6px; padding:10px 14px; background:oklch(0.97 0.004 255); text-align:center;">
+              <div style="font-weight:700; font-size:14px;">Altmetric</div>
+            </div>
+            <div style="display:flex; justify-content:center; padding:4px 0;">
+              <div style="width:1.5px; height:20px; background:oklch(0.7 0.02 255); position:relative;">
+                <span style="position:absolute; bottom:-5px; left:-4px; line-height:1; color:oklch(0.7 0.02 255); font-size:11px;">▼</span>
+              </div>
+            </div>
+            <div style="border:1.5px solid oklch(0.8 0.015 255); border-radius:6px; padding:12px 14px;">
+              <div style="font-weight:700; font-size:14px;">__HDR_N_PAPERS__ papers</div>
+              <div style="font-size:12.5px; color:oklch(0.5 0.02 255); margin-top:3px;">OpenAlex data source</div>
+            </div>
+            <div style="display:flex; justify-content:center; padding:4px 0;">
+              <div style="width:1.5px; height:20px; background:oklch(0.7 0.02 255); position:relative;">
+                <span style="position:absolute; top:-5px; left:-4px; line-height:1; color:oklch(0.7 0.02 255); font-size:11px;">▲</span>
+              </div>
+            </div>
+            <div style="border:1.5px solid oklch(0.8 0.015 255); border-radius:6px; padding:10px 14px; background:oklch(0.97 0.004 255); text-align:center;">
+              <div style="font-weight:700; font-size:14px;">EurekAlert!</div>
+              <div style="font-size:12.5px; color:oklch(0.5 0.02 255); margin-top:3px;">press release data source</div>
+            </div>
           </div>
-        </div>
-        <div style="flex:0 0 44px; height:1.5px; background:oklch(0.7 0.02 255); position:relative;"><span style="position:absolute; right:-1px; top:-4.5px; line-height:1; color:oklch(0.7 0.02 255); font-size:13px;">▶</span></div>
-        <div style="flex:1; min-width:240px; border:1.5px dashed oklch(0.75 0.02 255); border-radius:6px; padding:14px 16px;">
-          <div style="font-weight:700; font-size:14px;">Outcomes measured per paper</div>
-          <div style="font-size:12.5px; color:oklch(0.5 0.02 255); margin-top:3px; line-height:1.55;">Attention Score · citations · news · patents · policy · X · Facebook</div>
+          <div style="flex:0 0 44px; display:flex; flex-direction:column; gap:26px; justify-content:center; align-self:center; margin-top:18px;">
+            <div style="height:1.5px; background:#1F4E79; position:relative; transform:rotate(-14deg);"><span style="position:absolute; right:-1px; top:-4.5px; line-height:1; color:#1F4E79; font-size:13px;">▶</span></div>
+            <div style="height:1.5px; background:oklch(0.75 0.02 255); position:relative; transform:rotate(14deg);"><span style="position:absolute; right:-1px; top:-4.5px; line-height:1; color:oklch(0.75 0.02 255); font-size:13px;">▶</span></div>
+          </div>
+          <div style="flex:0 0 220px; display:flex; flex-direction:column; gap:10px; align-self:center; margin-top:18px;">
+            <div style="background:#1F4E79; color:#fff; border-radius:6px; padding:11px 15px;">
+              <div style="font-weight:700; font-size:14px;">__HDR_N_WITH__ get a press release</div>
+              <div style="font-size:12px; opacity:.8; margin-top:2px;">matched on EurekAlert!</div>
+            </div>
+            <div style="background:oklch(0.93 0.006 255); border-radius:6px; padding:11px 15px;">
+              <div style="font-weight:700; font-size:14px; color:oklch(0.42 0.02 255);">__HDR_N_WITHOUT__ don’t</div>
+              <div style="font-size:12px; color:oklch(0.55 0.02 255); margin-top:2px;">no matched release</div>
+            </div>
+          </div>
+          <div style="flex:0 0 44px; height:1.5px; background:oklch(0.7 0.02 255); position:relative; align-self:center; margin-top:18px;"><span style="position:absolute; right:-1px; top:-4.5px; line-height:1; color:oklch(0.7 0.02 255); font-size:13px;">▶</span></div>
+          <div style="flex:0 0 260px; border:1.5px dashed oklch(0.75 0.02 255); border-radius:6px; padding:14px 16px; align-self:center; margin-top:18px;">
+            <div style="font-weight:700; font-size:14px;">Outcomes measured per paper</div>
+            <div style="font-size:12.5px; color:oklch(0.5 0.02 255); margin-top:3px; line-height:1.55;">Attention Score · citations · news · patents · policy · X · Facebook</div>
+          </div>
         </div>
       </div>
-      <!-- <p style="font-size:13px; color:oklch(0.52 0.02 255); margin:10px 0 0; max-width:860px;">The key problem is visible already: papers are not <i>assigned</i> a press release at random. Press offices pick their strongest work — so the two groups differ before promotion even starts.</p> -->
+      <div style="display:grid; grid-template-columns:150px 1fr; gap:14px; margin-top:14px; background:#fff; border:1px solid oklch(0.89 0.008 255); border-radius:8px; padding:22px 26px;">
+        <div style="font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.12em; color:#1F4E79; padding-top:2px;">Data sources</div>
+        <div style="font-size:14.5px; display:flex; flex-direction:column; gap:10px;">
+          <p style="margin:0; text-wrap:pretty;"><b>EurekAlert!</b> Archive of science press releases. We match each paper to a release by DOI to define the with-PR group.</p>
+          <p style="margin:0; text-wrap:pretty;"><b>Altmetric.</b> Tracks online attention - news, social media, policy, patents, and more - and computes the weighted Attention Score per paper.</p>
+          <p style="margin:0; text-wrap:pretty;"><b>OpenAlex.</b> Open bibliographic index of scholarly works. Supplies citation counts, publication metadata, fields, and author affiliations.</p>
+        </div>
+      </div>
 
-      <div style="font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:oklch(0.45 0.02 255); margin:40px 0 14px;">The seven outcome variables</div>
+      <div style="font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:oklch(0.45 0.02 255); margin:40px 0 8px;">The seven outcome variables</div>
+      <p style="margin:0 0 14px; font-size:14.5px; color:oklch(0.45 0.02 255); max-width:960px; text-wrap:pretty;">These are the variables we track for each paper to measure the impact of a press release - from online attention and social media to citations, news coverage, patents, and policy mentions.</p>
       <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:12px;">
         <sc-for list="{{ outcomeCards }}" as="c" hint-placeholder-count="7">
-          <div style="background:#fff; border:1px solid oklch(0.89 0.008 255); border-radius:8px; padding:14px 16px;">
+          <div style="background:#fff; border:1px solid oklch(0.89 0.008 255); border-radius:8px; padding:14px 16px; display:flex; flex-direction:column; min-height:118px;">
             <div style="display:flex; justify-content:space-between; align-items:baseline; gap:8px;">
               <div style="font-weight:700; font-size:14px;">{{ c.label }}</div>
               <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#1F4E79; white-space:nowrap;">{{ c.weight }}</div>
             </div>
-            <div style="font-size:12.5px; color:oklch(0.52 0.02 255); margin-top:4px; line-height:1.45; text-wrap:pretty;">{{ c.desc }}</div>
+            <div style="font-size:12.5px; color:oklch(0.52 0.02 255); margin-top:4px; line-height:1.45; text-wrap:pretty; flex:1;">{{ c.desc }}</div>
+            <div style="display:flex; justify-content:flex-end; margin-top:10px;">
+              <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#1F4E79; white-space:nowrap;">{{ c.source }}</div>
+            </div>
           </div>
         </sc-for>
       </div>
-      <p style="font-size:13px; color:oklch(0.52 0.02 255); margin:10px 0 0; max-width:860px;"><b>Attention Score</b> is Altmetric’s weighted sum of mention channels — news ×8, blogs ×5, policy/patents/Wikipedia ×3, social ×0.25. Citations are counted separately and are <i>not</i> part of the score.</p>
+      <p style="font-size:13px; color:oklch(0.52 0.02 255); margin:10px 0 0; max-width:860px;"><b>Attention Score</b> is Altmetric’s weighted sum of mention channels - news ×8, blogs ×5, policy/patents/Wikipedia ×3, social ×0.25. Citations are counted separately and are <i>not</i> part of the score.</p>
 
-      <div style="font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:oklch(0.45 0.02 255); margin:40px 0 14px;">Figure 1.2 — A sense of scale (log axis)</div>
+      <div style="font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:oklch(0.45 0.02 255); margin:40px 0 14px;">Figure 1.2 - A sense of scale (log axis)</div>
       <div style="background:#fff; border:1px solid oklch(0.89 0.008 255); border-radius:8px; padding:24px 28px;">
         <div style="display:flex; flex-direction:column; gap:20px;">
           <sc-for list="{{ scaleRows }}" as="s" hint-placeholder-count="4">
@@ -206,13 +239,13 @@ nav .report-nav-link:focus-visible::before {
           <span style="display:flex; align-items:center; gap:6px;"><span style="width:10px; height:10px; border-radius:50%; background:#fff; border:2.5px solid oklch(0.62 0.02 255);"></span> median</span>
           <span style="display:flex; align-items:center; gap:6px;"><span style="width:10px; height:10px; border-radius:50%; background:#1F4E79;"></span> mean</span>
           <span style="display:flex; align-items:center; gap:6px;"><span style="width:3px; height:12px; background:oklch(0.3 0.03 255);"></span> max</span>
-          <span style="margin-left:auto;">Mean ≫ median on every variable: distributions are extremely right-skewed — a handful of papers capture most of the attention.</span>
+          <span style="margin-left:auto;">Mean ≫ median on every variable: distributions are extremely right-skewed - a handful of papers capture most of the attention.</span>
         </div>
       </div>
 
       <div style="display:flex; gap:14px; margin-top:36px; background:#fff; border:1px solid oklch(0.89 0.008 255); border-radius:8px; padding:20px 24px; max-width:960px;">
         <div style="font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.12em; color:#1F4E79; flex:0 0 150px; padding-top:2px;">How we’ll measure impact</div>
-        <p style="margin:0; font-size:14.5px; text-wrap:pretty;">Everything here is <b>correlational</b> - we never observe the same paper with and without a press release. Our strategy is to make the comparison as fair as possible by <b>controlling for the characteristics</b> of where a paper was produced and published, ending with models that compare papers only <i>within</i> the same journal or university.</p>
+        <p style="margin:0; font-size:14.5px; text-wrap:pretty;">We never observe the same paper with and without a press release. Our strategy is to make the comparison as fair as possible by controlling for the characteristics of where a paper was produced and published, ending with models that compare papers only within the same journal or university.</p>
       </div>
 
       <sc-if value="{{ showTakeaways }}" hint-placeholder-val="{{ true }}">
@@ -234,7 +267,7 @@ nav .report-nav-link:focus-visible::before {
       <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:28px; margin:26px 0 40px; max-width:960px;">
         <div>
           <div style="font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.12em; color:#1F4E79; margin-bottom:6px;">What</div>
-          <p style="margin:0; font-size:14.5px; text-wrap:pretty;">A ladder of three specifications, each stricter about what counts as a fair comparison between PR and non-PR papers.</p>
+          <p style="margin:0; font-size:14.5px; text-wrap:pretty;">A two-step ladder: a naive group comparison, then fixed-effects models that compare papers only within the same journal, university, field, or author.</p>
         </div>
         <div>
           <div style="font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.12em; color:#1F4E79; margin-bottom:6px;">Why</div>
@@ -242,12 +275,12 @@ nav .report-nav-link:focus-visible::before {
         </div>
         <div>
           <div style="font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.12em; color:#1F4E79; margin-bottom:6px;">How</div>
-          <p style="margin:0; font-size:14.5px; text-wrap:pretty;">OLS of each outcome on <code style="font-family:'IBM Plex Mono',monospace; font-size:12.5px; background:oklch(0.95 0.005 255); padding:1px 5px; border-radius:3px;">has_pr</code>, progressively adding controls, then entity fixed effects.</p>
+          <p style="margin:0; font-size:14.5px; text-wrap:pretty;">Start with the raw <code style="font-family:'IBM Plex Mono',monospace; font-size:12.5px; background:oklch(0.95 0.005 255); padding:1px 5px; border-radius:3px;">has_pr</code> gap, then re-estimate with fixed effects. Figure 3.2 walks through university, journal, field, entity, and last-author FE specifications.</p>
         </div>
       </div>
 
       <div style="display:flex; flex-direction:column; gap:14px;">
-        <sc-for list="{{ specLadder }}" as="sp" hint-placeholder-count="3">
+        <sc-for list="{{ specLadder }}" as="sp" hint-placeholder-count="2">
           <div style="border:1px solid {{ sp.border }}; background:{{ sp.bg }}; border-radius:8px; padding:22px 26px; display:grid; grid-template-columns:44px 200px 1fr 160px; gap:22px; align-items:center;">
             <div style="font-family:'Source Serif 4',Georgia,serif; font-size:26px; font-weight:700; color:{{ sp.numColor }};">{{ sp.num }}</div>
             <div>
@@ -263,21 +296,10 @@ nav .report-nav-link:focus-visible::before {
         </sc-for>
       </div>
 
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:26px; max-width:960px;">
-        <div style="background:oklch(0.978 0.004 255); border-radius:8px; padding:18px 22px;">
-          <div style="font-weight:700; font-size:14px; margin-bottom:5px;">Controlling by university</div>
-          <p style="margin:0; font-size:13.5px; color:oklch(0.42 0.02 255); text-wrap:pretty;">Absorbs differences in institutional resources and press-office capacity. Estimates shrink modestly — universities vary less in outcomes than journals do.</p>
-        </div>
-        <div style="background:oklch(0.978 0.004 255); border-radius:8px; padding:18px 22px;">
-          <div style="font-weight:700; font-size:14px; margin-bottom:5px;">Controlling by journal</div>
-          <p style="margin:0; font-size:13.5px; color:oklch(0.42 0.02 255); text-wrap:pretty;">Absorbs venue prestige — the biggest confounder. Estimates shrink most here, because high-profile journals drive both PR selection and attention.</p>
-        </div>
-      </div>
-
       <sc-if value="{{ showTakeaways }}" hint-placeholder-val="{{ true }}">
         <div style="margin-top:32px; background:#1F4E79; color:#fff; border-radius:8px; padding:18px 24px; font-size:15px; display:flex; gap:14px; align-items:baseline;">
           <span style="font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.12em; opacity:.75; white-space:nowrap;">Takeaway</span>
-          <span style="text-wrap:pretty;">Fixed effects compare each paper only against papers from the <i>same</i> journal or university. Whatever premium survives that comparison cannot be explained by venue — it’s our preferred estimate.</span>
+          <span style="text-wrap:pretty;">Fixed effects compare each paper only against papers from the <i>same</i> journal or university. Whatever premium survives that comparison cannot be explained by the entity - it’s our preferred estimate.</span>
         </div>
       </sc-if>
     </div>
@@ -288,7 +310,7 @@ nav .report-nav-link:focus-visible::before {
     <div style="max-width:1080px; margin:0 auto; padding:56px 40px 64px;">
       <div style="display:flex; align-items:baseline; gap:16px; margin-bottom:10px;">
         <span style="background:#1F4E79; color:#fff; font-weight:700; font-size:15px; width:32px; height:32px; display:inline-flex; align-items:center; justify-content:center; border-radius:4px; transform:translateY(4px);">3</span>
-        <h2 style="margin:0; font-family:'Source Serif 4',Georgia,serif; font-size:30px; font-weight:700; color:oklch(0.22 0.03 255);">Results — all papers</h2>
+        <h2 style="margin:0; font-family:'Source Serif 4',Georgia,serif; font-size:30px; font-weight:700; color:oklch(0.22 0.03 255);">Results - all papers</h2>
       </div>
       <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:28px; margin:26px 0 40px; max-width:960px;">
         <div>
@@ -297,22 +319,29 @@ nav .report-nav-link:focus-visible::before {
         </div>
         <div>
           <div style="font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.12em; color:#1F4E79; margin-bottom:6px;">Why</div>
-          <p style="margin:0; font-size:14.5px; text-wrap:pretty;">One number per outcome answers the core question: how much more attention does a press-released paper get, within the same venue?</p>
+          <p style="margin:0; font-size:14.5px; text-wrap:pretty;">One number per outcome answers the core question: how much more attention does a press-released paper get, within the same entity?</p>
         </div>
         <div>
           <div style="font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.12em; color:#1F4E79; margin-bottom:6px;">How</div>
-          <p style="margin:0; font-size:14.5px; text-wrap:pretty;">Coefficient on <code style="font-family:'IBM Plex Mono',monospace; font-size:12.5px; background:#fff; padding:1px 5px; border-radius:3px;">has_pr</code> with 95% CIs. Each row is drawn on its own scale — read the numbers, compare the ratios.</p>
+          <p style="margin:0; font-size:14.5px; text-wrap:pretty;">Coefficient on <code style="font-family:'IBM Plex Mono',monospace; font-size:12.5px; background:#fff; padding:1px 5px; border-radius:3px;">has_pr</code> with 95% CIs. Each row is drawn on its own scale - read the numbers, compare the ratios.</p>
         </div>
       </div>
 
-      <div style="font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:oklch(0.45 0.02 255); margin-bottom:14px;">Figure 3.1 — Main result: PR premium per outcome (entity fixed effects, 95% CI)</div>
+      <div style="font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:oklch(0.45 0.02 255); margin-bottom:14px;">Figure 3.1 - Main result: PR premium per outcome (entity fixed effects, 95% CI)</div>
       <div style="background:#fff; border:1px solid oklch(0.89 0.008 255); border-radius:8px; padding:26px 30px;">
+        <div style="display:flex; align-items:flex-end; gap:18px; margin-bottom:8px; padding-bottom:8px; border-bottom:1px solid oklch(0.93 0.006 255);">
+          <div style="flex:0 0 165px;"></div>
+          <div style="flex:1; min-width:0;"></div>
+          <div style="flex:0 0 110px; text-align:right; font-size:11px; font-weight:700; color:oklch(0.52 0.02 255); line-height:1.35;">without PR (Baseline)</div>
+          <div style="flex:0 0 110px; text-align:right; font-size:11px; font-weight:700; color:oklch(0.52 0.02 255); line-height:1.35;">with PR</div>
+          <div style="flex:0 0 130px; text-align:right; font-size:11px; font-weight:700; color:oklch(0.52 0.02 255);">PR premium</div>
+          <div style="flex:0 0 110px; text-align:right; font-size:11px; font-weight:700; color:oklch(0.52 0.02 255);">vs baseline</div>
+        </div>
         <div style="display:flex; flex-direction:column; gap:12px;">
           <sc-for list="{{ forestRows }}" as="r" hint-placeholder-count="7">
             <div style="display:flex; align-items:center; gap:18px;">
               <div style="flex:0 0 165px;">
                 <div style="font-weight:700; font-size:14px;">{{ r.label }}</div>
-                <div style="font-size:11.5px; color:oklch(0.55 0.02 255); font-variant-numeric:tabular-nums;">baseline {{ r.baseline }}</div>
               </div>
               <div style="flex:1; min-width:0;">
                 <svg viewBox="0 0 1000 40" width="100%" height="40" preserveAspectRatio="none" aria-hidden="true" style="display:block;">
@@ -326,6 +355,8 @@ nav .report-nav-link:focus-visible::before {
                   <circle cx="{{ r.barX }}" cy="20" r="5" fill="#1F4E79" stroke="#fff" stroke-width="2" />
                 </svg>
               </div>
+              <div style="flex:0 0 110px; text-align:right; font-size:13px; color:oklch(0.42 0.02 255); font-variant-numeric:tabular-nums;">{{ r.baseline }}</div>
+              <div style="flex:0 0 110px; text-align:right; font-size:13px; color:oklch(0.42 0.02 255); font-variant-numeric:tabular-nums;">{{ r.withPr }}</div>
               <div style="flex:0 0 130px; text-align:right;">
                 <div style="font-weight:700; font-size:15px; color:#1F4E79; font-variant-numeric:tabular-nums;">{{ r.coefLabel }}</div>
                 <div style="font-size:11.5px; color:oklch(0.55 0.02 255); font-variant-numeric:tabular-nums;">{{ r.ciLabel }}</div>
@@ -336,40 +367,81 @@ nav .report-nav-link:focus-visible::before {
         </div>
         <div style="margin-top:18px; padding-top:14px; border-top:1px solid oklch(0.93 0.006 255); font-size:12.5px; color:oklch(0.52 0.02 255);">Vertical line = zero effect. Dot = estimate; whiskers = 95% CI (each row on its own scale). Baseline = mean for without-PR papers in the same entities. N = __HDR_N_PAPERS__ papers · entity fixed effects.</div>
       </div>
+      <div style="margin-top:10px; padding:12px 16px; border:1px dashed oklch(0.85 0.01 255); border-radius:6px; background:oklch(0.99 0.002 255);">
+        <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:oklch(0.6 0.02 255); margin-bottom:4px;">Notes</div>
+        <p style="margin:0; font-size:13.5px; color:oklch(0.42 0.02 255); text-wrap:pretty;"><b>What:</b> Entity fixed-effects estimates of the PR premium for all seven outcomes - the main result. Each row compares papers with and without a press release <i>within the same university or journal entity</i>, holding the entity constant.  <br> <b>How to read:</b> The bar and dot are the estimated premium; whiskers are the 95% CI. Columns show typical without-PR and with-PR levels and the premium as a share of baseline.  <br><b>Example:</b> For Attention Score, a without-PR mean of ~2.7 and a premium of ~+130 implies press-released papers score roughly <b>18× the usual level</b> for that entity (~133 vs 2.7) - the headline finding.   </p>
+      </div>
+      <div style="display:flex; gap:14px; margin-top:14px; background:#fff; border:1px solid oklch(0.89 0.008 255); border-radius:8px; padding:20px 24px; max-width:960px;">
+        <div style="font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.12em; color:#1F4E79; flex:0 0 150px; padding-top:2px;">Insights</div>
+        <p style="margin:0; font-size:14.5px; text-wrap:pretty;">Entity fixed effects give every university or journal its own baseline and compare papers only within that entity. Whatever premium survives is our preferred answer to how much a press release adds. <br> From the chart above we can see that papers that have gotten press releases get <b>49</b> times more attention score and more than <b>2</b> times the number of citations compared to ones without press releases</p>
+      </div>
 
-      <div style="font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:oklch(0.45 0.02 255); margin:44px 0 14px;">Figure 3.2 — How the estimate moves with controls</div>
+      <div style="font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:oklch(0.45 0.02 255); margin:44px 0 14px;">Figure 3.2 - How the estimate moves with controls</div>
       <div style="background:#fff; border:1px solid oklch(0.89 0.008 255); border-radius:8px; padding:26px 30px;">
         <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:24px;">
           <span style="font-size:13px; font-weight:600; color:oklch(0.5 0.02 255); margin-right:4px;">Specification:</span>
-          <sc-for list="{{ specChips }}" as="ch" hint-placeholder-count="5">
+          <sc-for list="{{ specChips }}" as="ch" hint-placeholder-count="6">
             <button sc-camel-on-click="{{ ch.select }}" style="{{ ch.style }}">{{ ch.label }}</button>
           </sc-for>
         </div>
-        <div style="display:flex; flex-direction:column; gap:13px;">
+        <div style="display:grid; grid-template-columns:165px minmax(0,1fr) 110px 110px 130px 110px; column-gap:18px; align-items:end; margin-bottom:8px; padding-bottom:8px; border-bottom:1px solid oklch(0.93 0.006 255);">
+          <div></div>
+          <div></div>
+          <div style="text-align:right; font-size:11px; font-weight:700; color:oklch(0.52 0.02 255); line-height:1.35;">without PR (Baseline)</div>
+          <div style="text-align:right; font-size:11px; font-weight:700; color:oklch(0.52 0.02 255); line-height:1.35;">with PR</div>
+          <div style="text-align:right; font-size:11px; font-weight:700; color:oklch(0.52 0.02 255);">PR premium</div>
+          <div style="text-align:right; font-size:11px; font-weight:700; color:oklch(0.52 0.02 255);">vs baseline</div>
+        </div>
+        <div style="display:grid; grid-template-columns:165px minmax(0,1fr) 110px 110px 130px 110px; column-gap:18px; row-gap:12px; position:relative; overflow:visible;">
           <sc-for list="{{ specRows }}" as="r" hint-placeholder-count="7">
-            <div style="display:flex; align-items:center; gap:18px;">
-              <div style="flex:0 0 165px; font-weight:700; font-size:14px;">{{ r.label }}</div>
-              <div style="flex:1; position:relative; height:24px;">
-                <div style="position:absolute; left:0; top:0; bottom:0; width:1.5px; background:oklch(0.8 0.012 255);"></div>
-                <sc-if value="{{ r.showRawRef }}" hint-placeholder-val="{{ true }}">
-                  <div style="position:absolute; left:{{ r.rawW }}; top:11.25px; width:6px; height:1.5px; background:transparent; border-top:1.5px dotted oklch(0.6 0.02 255);"></div>
-                  <div title="raw baseline" style="position:absolute; top:3px; left:{{ r.rawPos }}; width:2px; height:18px; background:oklch(0.72 0.03 255);"></div>
-                </sc-if>
-                <div style="position:absolute; left:0; top:6px; height:12px; width:{{ r.barW }}; background:#1F4E79; border-radius:0 3px 3px 0; transition:width .45s cubic-bezier(.2,.7,.2,1);"></div>
+            <div style="display:contents;">
+              <div style="grid-column:1; font-weight:700; font-size:14px;">{{ r.label }}</div>
+              <div style="grid-column:2; min-width:0; position:relative; z-index:1; overflow:visible;">
+                <svg viewBox="0 0 1000 40" width="100%" height="40" preserveAspectRatio="none" aria-hidden="true" style="display:block; overflow:visible;">
+                  <!-- zero line -->
+                  <line x1="0" y1="0" x2="0" y2="40" stroke="oklch(0.8 0.012 255)" stroke-width="4" />
+                  <sc-if value="{{ showRawRefLine }}" hint-placeholder-val="{{ true }}">
+                    <line x1="{{ rawRefX }}" y1="-6" x2="{{ rawRefX }}" y2="46" stroke="oklch(0.72 0.02 255)" stroke-width="2.5" stroke-dasharray="8 6" />
+                  </sc-if>
+                  <!-- premium bar + CI share the same vertical center (y=20) -->
+                  <rect x="0" y="14" width="{{ r.barX }}" height="12" fill="#1F4E79" rx="2" />
+                  <line x1="{{ r.ciLoX }}" y1="20" x2="{{ r.ciHiX }}" y2="20" stroke="#AEBFCE" stroke-width="2.5" />
+                  <line x1="{{ r.ciLoX }}" y1="12" x2="{{ r.ciLoX }}" y2="28" stroke="#AEBFCE" stroke-width="2.5" />
+                  <line x1="{{ r.ciHiX }}" y1="12" x2="{{ r.ciHiX }}" y2="28" stroke="#AEBFCE" stroke-width="2.5" />
+                  <circle cx="{{ r.barX }}" cy="20" r="5" fill="#1F4E79" stroke="#fff" stroke-width="2" />
+                </svg>
               </div>
-              <div style="flex:0 0 120px; text-align:right; font-weight:700; font-size:14.5px; color:#1F4E79; font-variant-numeric:tabular-nums;">{{ r.coefLabel }}</div>
+              <div style="grid-column:3; text-align:right; font-size:13px; color:oklch(0.42 0.02 255); font-variant-numeric:tabular-nums;">{{ r.baseline }}</div>
+              <div style="grid-column:4; text-align:right; font-size:13px; color:oklch(0.42 0.02 255); font-variant-numeric:tabular-nums;">{{ r.withPr }}</div>
+              <div style="grid-column:5; text-align:right;">
+                <div style="font-weight:700; font-size:15px; color:#1F4E79; font-variant-numeric:tabular-nums;">{{ r.coefLabel }}</div>
+                <div style="font-size:11.5px; color:oklch(0.55 0.02 255); font-variant-numeric:tabular-nums;">{{ r.ciLabel }}</div>
+              </div>
+              <div style="grid-column:6; text-align:right;"><span style="font-size:12px; font-weight:700; color:{{ r.multColor }}; background:{{ r.multBg }}; padding:3px 8px; border-radius:4px; font-variant-numeric:tabular-nums;">{{ r.mult }}</span></div>
             </div>
           </sc-for>
         </div>
         <div style="margin-top:18px; padding-top:14px; border-top:1px solid oklch(0.93 0.006 255); font-size:12.5px; color:oklch(0.52 0.02 255); display:flex; gap:18px; align-items:center; flex-wrap:wrap;">
-          <sc-if value="{{ showRawLegend }}" hint-placeholder-val="{{ true }}">
-            <span style="display:flex; align-items:center; gap:6px;"><span style="width:2px; height:14px; background:oklch(0.72 0.03 255);"></span> raw baseline (fixed scale; FE bars shrink or grow relative to raw)</span>
+          <sc-if value="{{ showRawRefLine }}" hint-placeholder-val="{{ true }}">
+            <span style="display:flex; align-items:center; gap:6px;"><span style="width:0; height:14px; border-left:1.5px dashed oklch(0.72 0.02 255);"></span> {{ rawLegendLabel }}</span>
           </sc-if>
+          <span style="display:flex; align-items:center; gap:6px;"><span style="width:14px; height:2.5px; background:#AEBFCE;"></span> 95% CI</span>
           <span style="margin-left:auto;">{{ specNote }}</span>
         </div>
       </div>
+      <div style="margin-top:10px; padding:12px 16px; border:1px dashed oklch(0.85 0.01 255); border-radius:6px; background:oklch(0.99 0.002 255);">
+        <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:oklch(0.6 0.02 255); margin-bottom:4px;">Notes</div>
+        <p style="margin:0; font-size:13.5px; color:oklch(0.42 0.02 255); text-wrap:pretty;"><b>What:</b> The same seven outcomes under six specifications - from the naive raw gap to progressively stricter fixed effects. Use the chips to see how much of the PR association survives each control strategy.  <br> <b>How to read:</b> Bar length = PR premium on a scale locked to the raw gap (dashed grey line). Shorter FE bars mean controls absorb part of the raw difference; numbers in the columns update with the active spec.  <br> <b>Example:</b> Attention Score might show a raw premium of ~+128, a university FE premium of ~+140 on institution papers, and an entity FE premium of ~+130 - the bar shrinks or grows relative to the dashed raw line, showing which confounders matter most.</br> </p>
+      </div>
+      <div style="display:flex; gap:14px; margin-top:14px; background:#fff; border:1px solid oklch(0.89 0.008 255); border-radius:8px; padding:20px 24px; max-width:960px;">
+        <div style="font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.12em; color:#1F4E79; flex:0 0 150px; padding-top:2px;">Insights</div>
+        <div style="font-size:14.5px; display:flex; flex-direction:column; gap:10px;">
+          <p style="margin:0; text-wrap:pretty;"><b>Controlling by university.</b> University FE absorbs differences in institutional resources and prestige. Estimates increase a bit compared to the baseline which shows that universities press releases tend to have a higher impact compared to Journals</p>
+          <p style="margin:0; text-wrap:pretty;"><b>Controlling by journal.</b> Journal FE absorbs entity prestige - the biggest confounder. Estimates shrink most here </p> <p style="margin:0; text-wrap:pretty;color: crimson;">--need clarification here</p>
+        </div>
+      </div>
 
-      <div style="font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:oklch(0.45 0.02 255); margin:44px 0 14px;">Figure 3.3 — The same picture for one journal or university</div>
+      <div style="font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:oklch(0.45 0.02 255); margin:44px 0 14px;">Figure 3.3 - The same picture for one journal or university</div>
       <div style="background:#fff; border:1px solid oklch(0.89 0.008 255); border-radius:8px; padding:26px 30px;">
         <div style="display:flex; align-items:center; gap:14px; margin-bottom:24px;">
           <span style="font-size:13px; font-weight:600; color:oklch(0.5 0.02 255);">Entity:</span>
@@ -392,23 +464,27 @@ nav .report-nav-link:focus-visible::before {
             </div>
           </sc-for>
         </div>
-        <div style="margin-top:18px; padding-top:14px; border-top:1px solid oklch(0.93 0.006 255); font-size:12.5px; color:oklch(0.52 0.02 255);">Group means (not regression-adjusted) for papers of the selected entity. Entities with 0 press-released papers show “—” for the with-PR mean. Small with-PR samples make single-entity numbers noisy.</div>
+        <div style="margin-top:18px; padding-top:14px; border-top:1px solid oklch(0.93 0.006 255); font-size:12.5px; color:oklch(0.52 0.02 255);">Group means (not regression-adjusted) for papers of the selected entity. Entities with 0 press-released papers show “-” for the with-PR mean. Small with-PR samples make single-entity numbers noisy.</div>
+      </div>
+      <div style="margin-top:10px; padding:12px 16px; border:1px dashed oklch(0.85 0.01 255); border-radius:6px; background:oklch(0.99 0.002 255);">
+        <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:oklch(0.6 0.02 255); margin-bottom:4px;">Notes</div>
+        <p style="margin:0; font-size:13.5px; color:oklch(0.42 0.02 255); text-wrap:pretty;"><b>What:</b> Simple group means for one selected journal or university - with-PR vs without-PR papers from that entity only. This is descriptive, not regression-adjusted.   <br> <b>How to read:</b> The navy bar is the mean for papers with a matched press release; the grey bar is the mean without. The label on the right gives both values and their ratio.   <br><b>Example:</b> For a large research university, Attention Score might read <b>143</b> with PR vs <b>2.7</b> without - a ~50× gap visible for a single institution, useful for sanity-checking the pooled estimates in Figures 3.1–3.2. </p>
       </div>
 
-      <div style="display:grid; grid-template-columns:150px 1fr; gap:14px; margin-top:36px; background:#fff; border:1px solid oklch(0.89 0.008 255); border-radius:8px; padding:22px 26px;">
+      <!-- <div style="display:grid; grid-template-columns:150px 1fr; gap:14px; margin-top:36px; background:#fff; border:1px solid oklch(0.89 0.008 255); border-radius:8px; padding:22px 26px;">
         <div style="font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.12em; color:#1F4E79; padding-top:2px;">How to read these effect sizes</div>
         <div style="font-size:14.5px; display:flex; flex-direction:column; gap:10px;">
-          <p style="margin:0; text-wrap:pretty;"><b>Attention is where the action is.</b> +112 attention points on a baseline of 6.4 means a press-released paper scores roughly <b>18× the venue norm</b> — equivalent to ~14 extra news stories at Altmetric’s ×8 weight.</p>
+          <p style="margin:0; text-wrap:pretty;"><b>Impact on Attention</b> +112 attention points on a baseline of 6.4 means a press-released paper scores roughly <b>18× the entity norm</b> - equivalent to ~14 extra news stories at Altmetric’s ×8 weight.</p>
           <p style="margin:0; text-wrap:pretty;"><b>News drives the score.</b> +11 news mentions on a baseline of 0.4: most non-PR papers get <i>zero</i> news coverage, so the press release effectively decides whether a paper enters the news at all.</p>
-          <p style="margin:0; text-wrap:pretty;"><b>Citations move less, but meaningfully.</b> +9.8 citations on a baseline of 14.2 (≈ +69%) — media visibility coincides with a real scholarly premium, though selection on paper quality surely explains part of it.</p>
-          <p style="margin:0; text-wrap:pretty;"><b>Patents are the weakest link.</b> The patent-citation estimate is small and borderline significant — invention timelines are long and these events are rare.</p>
+          <p style="margin:0; text-wrap:pretty;"><b>Citations move less, but meaningfully.</b> +9.8 citations on a baseline of 14.2 (≈ +69%) - media visibility coincides with a real scholarly premium, though selection on paper quality surely explains part of it.</p>
+          <p style="margin:0; text-wrap:pretty;"><b>Patents are the weakest link.</b> The patent-citation estimate is small and borderline significant - invention timelines are long and these events are rare.</p>
         </div>
-      </div>
+      </div> -->
 
       <sc-if value="{{ showTakeaways }}" hint-placeholder-val="{{ true }}">
         <div style="margin-top:32px; background:#1F4E79; color:#fff; border-radius:8px; padding:18px 24px; font-size:15px; display:flex; gap:14px; align-items:baseline;">
           <span style="font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.12em; opacity:.75; white-space:nowrap;">Takeaway</span>
-          <span style="text-wrap:pretty;">Even comparing papers within the same journal, press-released work earns ≈18× the baseline attention, ~11 extra news mentions, and ~10 extra citations. These are associations — strong, consistent, but not causal proof.</span>
+          <span style="text-wrap:pretty;">Under entity fixed effects, press-released papers score ~50× the usual attention (+130 on a ~2.7 baseline), pick up ~15 extra news mentions from a near-zero base, and earn ~60 more citations (~3× the without-PR mean). The premium shrinks most under journal FE-especially for citations- but stays large for attention even within the same author. These are associations, not causal proof.</span>
         </div>
       </sc-if>
     </div>
@@ -428,15 +504,15 @@ nav .report-nav-link:focus-visible::before {
         </div>
         <div>
           <div style="font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.12em; color:#1F4E79; margin-bottom:6px;">Why</div>
-          <p style="margin:0; font-size:14.5px; text-wrap:pretty;">A single average can hide the story: is the PR premium universal, or driven by a few prestige venues?</p>
+          <p style="margin:0; font-size:14.5px; text-wrap:pretty;">A single average can hide the story: is the PR premium universal, or driven by a few prestige entities?</p>
         </div>
         <div>
           <div style="font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.12em; color:#1F4E79; margin-bottom:6px;">How</div>
-          <p style="margin:0; font-size:14.5px; text-wrap:pretty;">Small multiples — one panel per outcome, identical layout, bars scaled within each panel.</p>
+          <p style="margin:0; font-size:14.5px; text-wrap:pretty;">Small multiples - one panel per outcome, identical layout, bars scaled within each panel.</p>
         </div>
       </div>
 
-      <div style="font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:oklch(0.45 0.02 255); margin-bottom:14px;">Figure 4.1 — PR premium across entities, seven outcomes</div>
+      <div style="font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:oklch(0.45 0.02 255); margin-bottom:14px;">Figure 4.1 - PR premium across entities, seven outcomes</div>
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
         <sc-for list="{{ hetPanels }}" as="p" hint-placeholder-count="6">
           <div style="background:#fff; border:1px solid oklch(0.89 0.008 255); border-radius:8px; padding:20px 22px;">
@@ -463,10 +539,10 @@ nav .report-nav-link:focus-visible::before {
       </div>
 
       <sc-if value="{{ showTakeaways }}" hint-placeholder-val="{{ true }}">
-        <div style="margin-top:32px; background:#1F4E79; color:#fff; border-radius:8px; padding:18px 24px; font-size:15px; display:flex; gap:14px; align-items:baseline;">
+        <!-- <div style="margin-top:32px; background:#1F4E79; color:#fff; border-radius:8px; padding:18px 24px; font-size:15px; display:flex; gap:14px; align-items:baseline;">
           <span style="font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.12em; opacity:.75; white-space:nowrap;">Takeaway</span>
-          <span style="text-wrap:pretty;">The premium is universal in direction — every entity, every outcome — but varies roughly 3× in size. It is largest for attention at high-prestige journals and flattest for citations, where venue norms already dominate.</span>
-        </div>
+          <span style="text-wrap:pretty;">The premium is universal in direction - every entity, every outcome - but varies roughly 3× in size. It is largest for attention at high-prestige journals and flattest for citations, where entity norms already dominate.</span>
+        </div> -->
       </sc-if>
     </div>
   </section>
@@ -475,19 +551,19 @@ nav .report-nav-link:focus-visible::before {
   <section id="s5" data-screen-label="Conclusion" style="background:oklch(0.24 0.045 255); color:#fff;">
     <div style="max-width:1080px; margin:0 auto; padding:64px 40px 72px;">
       <div style="font-size:12.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.16em; opacity:.7; margin-bottom:14px;">Implications &amp; conclusion</div>
-      <h2 style="margin:0 0 34px; font-family:'Source Serif 4',Georgia,serif; font-size:32px; font-weight:700; line-height:1.2; max-width:760px; text-wrap:pretty;">Press releases coincide with a large, consistent visibility premium — concentrated in media attention, present but smaller in citations.</h2>
+      <h2 style="margin:0 0 34px; font-family:'Source Serif 4',Georgia,serif; font-size:32px; font-weight:700; line-height:1.2; max-width:820px; text-wrap:pretty;">Press releases coincide with a large within-entity visibility premium-concentrated in Altmetric attention and news coverage, with a smaller but durable citation gain.</h2>
       <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:28px;">
         <div style="border-top:2px solid rgba(255,255,255,.3); padding-top:16px;">
-          <div style="font-family:'Source Serif 4',Georgia,serif; font-size:22px; font-weight:700; margin-bottom:8px;">1 — Media attention</div>
-          <p style="margin:0; font-size:14.5px; opacity:.85; text-wrap:pretty;">The PR premium is enormous for attention (≈18× baseline) and news mentions (+11 on a near-zero base): the press release largely decides whether a paper enters the news cycle at all.</p>
+          <div style="font-family:'Source Serif 4',Georgia,serif; font-size:22px; font-weight:700; margin-bottom:8px;">1 - Media attention</div>
+          <p style="margin:0; font-size:14.5px; opacity:.85; text-wrap:pretty;">We see that press releases have an attention premium at <b>+130 points</b> on a without-PR baseline of ~2.7-roughly <b>50× the usual level</b> for that entity. News mentions rise ~+15 from a baseline near 0.2, and X posts ~+47: for most outcomes the release is what moves a paper from invisible to widely discussed. <br><b> Overall the papers with press releases are having positive and significant effects on media attention for all controls</b></p>
         </div>
         <div style="border-top:2px solid rgba(255,255,255,.3); padding-top:16px;">
-          <div style="font-family:'Source Serif 4',Georgia,serif; font-size:22px; font-weight:700; margin-bottom:8px;">2 — Scholarly impact</div>
-          <p style="margin:0; font-size:14.5px; opacity:.85; text-wrap:pretty;">Citations rise ~69% within venue. That the premium survives entity fixed effects suggests it is not just journal prestige — but selection on paper quality remains uncontrolled.</p>
+          <div style="font-family:'Source Serif 4',Georgia,serif; font-size:22px; font-weight:700; margin-bottom:8px;">2 - Scholarly impact</div>
+          <p style="margin:0; font-size:14.5px; opacity:.85; text-wrap:pretty;">Citations gain ~+59 within entity (~3× a without-PR mean of ~25). That premium survives pooled entity FE, university FE (+60) and last-author FE (+48), but falls to ~+6 <i>(not significant under 95% confidence)</i> under journal-only FE. <br><b> In conclusion, the university papers with press releases are having positive and significant effects on citations although we are not seeing a positive effect on journal papers</b></p>
         </div>
         <div style="border-top:2px solid rgba(255,255,255,.3); padding-top:16px;">
-          <div style="font-family:'Source Serif 4',Georgia,serif; font-size:22px; font-weight:700; margin-bottom:8px;">3 — What’s next</div>
-          <p style="margin:0; font-size:14.5px; opacity:.85; text-wrap:pretty;">These are associations. Credible causal designs — release timing, embargo discontinuities, press-office staffing shocks — are the natural next step.</p>
+          <div style="font-family:'Source Serif 4',Georgia,serif; font-size:22px; font-weight:700; margin-bottom:8px;">3 - What’s next</div>
+          <p style="margin:0; font-size:14.5px; opacity:.85; text-wrap:pretty;">These are associations from 1.05 million papers-only 1.3% matched to a press release-across 43 entities. They are strong and directionally consistent in every entity and outcome we plot, but they are not causal effects. Design that exploit release timing is the natural next step. Even as correlations, the attention and news premiums are large enough to inform how universities and journals invest in science communication.</p>
         </div>
       </div>
       <div style="margin-top:44px; padding-top:20px; border-top:1px solid rgba(255,255,255,.18); font-size:12.5px; opacity:.65; display:flex; gap:24px; flex-wrap:wrap;">
@@ -549,7 +625,7 @@ window.__REPORT_DATA__ = /*__REPORT_DATA__*/null;
 })();
 </script>
 <script>/*__DCLOGIC__*/</script>
-<script type="text/x-dc" data-dc-script="" data-props="{&quot;showTakeaways&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true},&quot;defaultSpec&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;fe&quot;,&quot;options&quot;:[&quot;raw&quot;,&quot;university&quot;,&quot;journal&quot;,&quot;fe&quot;,&quot;last_author&quot;]},&quot;entitiesPerPanel&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:8,&quot;min&quot;:4,&quot;max&quot;:12}}">
+<script type="text/x-dc" data-dc-script="" data-props="{&quot;showTakeaways&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true},&quot;defaultSpec&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;fe&quot;,&quot;options&quot;:[&quot;raw&quot;,&quot;university&quot;,&quot;journal&quot;,&quot;field&quot;,&quot;fe&quot;,&quot;last_author&quot;]},&quot;entitiesPerPanel&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:8,&quot;min&quot;:4,&quot;max&quot;:12}}">
 class Component extends DCLogic {
   state = { spec: null, entity: null };
 
@@ -579,7 +655,7 @@ class Component extends DCLogic {
 
   fmt(v) {
     const n = Number(v);
-    if (!isFinite(n)) return "—";
+    if (!isFinite(n)) return "-";
     if (Math.abs(n) >= 1000) return Math.round(n).toLocaleString("en-US");
     if (Math.abs(n) >= 100) return n.toFixed(0);
     if (Math.abs(n) >= 10) return n.toFixed(1);
@@ -602,13 +678,13 @@ class Component extends DCLogic {
     const attention = this.METRICS.find((m) => m.key === "attention") || this.METRICS[0] || { raw: 0, fe: 0, jour: 0 };
 
     const outcomeCards = [
-      { label: "Attention Score", weight: "weighted", desc: "Altmetric's composite of all mention channels - the headline visibility measure." },
-      { label: "Citations", weight: "separate", desc: "OpenAlex citation count. Scholarly impact; not part of the Attention Score." },
-      { label: "News Mentions", weight: "×8", desc: "Stories in mainstream and science news outlets. The heaviest-weighted channel." },
-      { label: "Patent Citations", weight: "×3", desc: "References from granted patents. Rare, slow-moving signal of applied use." },
-      { label: "Policy Mentions", weight: "×3", desc: "Citations in policy documents from governments, NGOs, and think tanks." },
-      { label: "X Mentions", weight: "×0.25", desc: "Posts on X. High volume, low weight per mention." },
-      { label: "Facebook Mentions", weight: "×0.25", desc: "Public Facebook posts. Also high-volume, low-weight social signal." },
+      { label: "Attention Score", weight: "weighted", source: "Altmetric", desc: "Altmetric's composite of all mention channels - the headline visibility measure." },
+      { label: "Citations", weight: "separate", source: "OpenAlex", desc: "OpenAlex citation count. Scholarly impact; not part of the Attention Score." },
+      { label: "News Mentions", weight: "×8", source: "Altmetric", desc: "Stories in mainstream and science news outlets. The heaviest-weighted channel." },
+      { label: "Patent Citations", weight: "×3", source: "Altmetric", desc: "References from granted patents. Rare, slow-moving signal of applied use." },
+      { label: "Policy Mentions", weight: "×3", source: "Altmetric", desc: "Citations in policy documents from governments, NGOs, and think tanks." },
+      { label: "X Mentions", weight: "×0.25", source: "Altmetric", desc: "Posts on X. High volume, low weight per mention." },
+      { label: "Facebook Mentions", weight: "×0.25", source: "Altmetric", desc: "Public Facebook posts. Also high-volume, low-weight social signal." },
     ];
 
     const logPos = (v, max) => (Math.log10(1 + v) / Math.log10(1 + max)) * 100 + "%";
@@ -627,23 +703,12 @@ class Component extends DCLogic {
     const specLadder = [
       {
         num: "1", name: "Raw comparison", formula: "y ~ has_pr",
-        intuition: "Compare average outcomes of PR papers against everyone else. Simple but misleading: press offices pick their strongest papers, and prestige venues both issue more PRs and attract more attention.",
-        <!-- tag: "Confounded", tagBg: "oklch(0.93 0.02 30)", tagColor: "oklch(0.45 0.14 30)", -->
-        <!-- example: "attention: +" + this.fmt(attention.raw), -->
+        intuition: "Compare average outcomes of PR papers against everyone else. Simple but misleading: Entities with higher prestige attracts more social media coverage, citations and attention irrespective of whether they are press-released or not.",
         border: "oklch(0.89 0.008 255)", bg: "#fff", numColor: "oklch(0.7 0.02 255)",
       },
       {
-        num: "2", name: "Add controls", formula: "y ~ has_pr + university + journal + field + year",
-        intuition: "Hold observable characteristics fixed. The estimate shrinks - most when controlling for journal, since venue prestige is the biggest confounder. But we can only control for what we measure.",
-        <!-- tag: "Better", tagBg: "oklch(0.93 0.02 90)", tagColor: "oklch(0.48 0.1 90)", -->
-        <!-- example: "attention: +" + this.fmt(attention.jour ?? attention.fe), -->
-        border: "oklch(0.89 0.008 255)", bg: "#fff", numColor: "oklch(0.7 0.02 255)",
-      },
-      {
-        num: "3", name: "Entity / last-author FE", formula: "y ~ has_pr | entity_name\ny ~ has_pr | last_author_id",
-        intuition: "Give every journal/university (or last author) its own baseline and compare papers only within the same group. Venue prestige and senior-author productivity can no longer explain the gap.",
-        <!-- tag: "Preferred", tagBg: "oklch(0.92 0.03 255)", tagColor: NAVY, -->
-        <!-- example: "attention: +" + this.fmt(attention.fe), -->
+        num: "2", name: "Fixed effects", formula: "y ~ has_pr | entity_name\ny ~ has_pr | field_id\ny ~ has_pr | last_author_id",
+        intuition: "Give every journal/university, OpenAlex field, or last author its own baseline and compare papers only within the same group. Figure 3.2 shows how the estimate moves under university, journal, field, entity, and last-author FE - our preferred comparison.",
         border: NAVY, bg: "oklch(0.975 0.008 255)", numColor: NAVY,
       },
     ];
@@ -652,15 +717,18 @@ class Component extends DCLogic {
       const ci = 1.96 * (m.se || 0);
       const lo = m.fe - ci;
       const hi = m.fe + ci;
+      const wo = Number(m.wo) || 0;
+      const withPrVal = Number(m.w) || (wo + (Number(m.raw) || 0));
       // Scale so the upper CI sits near the right edge; estimate is CI midpoint.
       const axMax = Math.max(hi * 1.08, 1e-9);
       const x = (v) => Math.max(0, Math.min(1000, (v / axMax) * 1000));
-      const mult = m.wo > 0 ? m.fe / m.wo : 0;
+      const mult = wo > 0 ? m.fe / wo : 0;
       const multLabel = mult >= 3 ? "×" + mult.toFixed(0) + " baseline" : "+" + Math.round(mult * 100) + "%";
       const strong = mult >= 3;
       return {
         label: m.label,
-        baseline: this.fmt(m.wo),
+        baseline: this.fmt(wo),
+        withPr: this.fmt(withPrVal),
         barX: x(m.fe).toFixed(1),
         ciLoX: x(lo).toFixed(1),
         ciHiX: x(hi).toFixed(1),
@@ -677,7 +745,7 @@ class Component extends DCLogic {
         key: "raw",
         label: "Baseline · Raw",
         note: (this.data.specNotes && this.data.specNotes.raw) ||
-          "No controls — naive mean(with PR) − mean(without PR).",
+          "No controls - naive mean(with PR) − mean(without PR).",
       },
       {
         key: "university",
@@ -692,13 +760,19 @@ class Component extends DCLogic {
           "Journal fixed effects: y ~ has_pr | entity_name on journal papers only.",
       },
       {
+        key: "field",
+        label: "3 · Field FE",
+        note: (this.data.specNotes && this.data.specNotes.field) ||
+          "Field fixed effects: y ~ has_pr | field_id (OpenAlex primary_topic.field).",
+      },
+      {
         key: "fe",
-        label: "3 · Entity (University + Journal) FE",
+        label: "4 · Entity (University + Journal) FE",
         note: "Entity fixed effects across universities and journals: y ~ has_pr | entity_name.",
       },
       {
         key: "last_author",
-        label: "4 · Last Author FE",
+        label: "5 · Last Author FE",
         note: (this.data.specNotes && this.data.specNotes.last_author) ||
           "Last-author fixed effects: y ~ has_pr | last_author_id.",
       },
@@ -716,31 +790,86 @@ class Component extends DCLogic {
       raw: "raw",
       university: "univ",
       journal: "jour",
+      field: "field",
       fe: "fe",
       last_author: "lastAuthor",
     };
+    const specSeKeyMap = {
+      raw: "rawSe",
+      university: "univSe",
+      journal: "jourSe",
+      field: "fieldSe",
+      fe: "se",
+      last_author: "lastAuthorSe",
+    };
+    const showRawRefLine = true;
     const showRawLegend = activeSpec !== "raw";
-    const specRows = this.METRICS.map((m) => {
-      const v = Number(m[specKeyMap[activeSpec]]) || 0;
+    const rawLegendLabel = showRawLegend
+      ? "raw baseline (fixed scale; FE bars shrink or grow relative to raw)"
+      : "raw baseline (fixed scale reference)";
+    // Raw bar ends at 1000/1.12 in viewBox units on the raw-locked scale.
+    const rawRefX = (1000 / 1.12).toFixed(1);
+    const specSample = (m) => {
       const rawVal = Number(m.raw) || 0;
+      let wo = Number(m.wo) || 0;
+      let w = Number(m.w) || (wo + rawVal);
+      let premium = Number(m[specKeyMap[activeSpec]]) || 0;
+      if (activeSpec === "raw") {
+        premium = rawVal;
+      } else if (activeSpec === "university") {
+        wo = Number(m.woInst);
+        if (!isFinite(wo)) wo = Number(m.wo) || 0;
+        w = Number(m.wInst);
+        if (!isFinite(w)) w = Number(m.w) || (wo + rawVal);
+        premium = Number(m.univ) || 0;
+      } else if (activeSpec === "journal") {
+        wo = Number(m.woJour);
+        if (!isFinite(wo)) wo = Number(m.wo) || 0;
+        w = Number(m.wJour);
+        if (!isFinite(w)) w = Number(m.w) || (wo + rawVal);
+        premium = Number(m.jour) || 0;
+      } else {
+        // Full-sample FE specs: implied with-PR level = baseline + premium.
+        w = wo + premium;
+      }
+      return { wo, w, premium };
+    };
+    const specRows = this.METRICS.map((m) => {
+      const { wo, w, premium: v } = specSample(m);
+      const rawVal = Number(m.raw) || 0;
+      const se = Number(m[specSeKeyMap[activeSpec]]) || 0;
+      const ci = 1.96 * se;
+      const lo = v - ci;
+      const hi = v + ci;
+      const mult = wo > 0 ? v / wo : 0;
+      const multLabel = mult >= 3 ? "×" + mult.toFixed(0) + " baseline" : "+" + Math.round(mult * 100) + "%";
+      const strong = mult >= 3;
       const fallbackMax = Math.max(
         m.univ || 0,
         m.jour || 0,
+        m.field || 0,
         m.fe || 0,
         m.lastAuthor || 0,
         v,
+        hi,
         1e-9,
       );
       // Lock row scale to raw so baseline bar length stays fixed across spec chips.
       const axMax = (rawVal > 0 ? rawVal : fallbackMax) * 1.12;
-      const rawPct = (rawVal / axMax) * 100;
+      const x = (val) => Math.max(0, Math.min(1000, (val / axMax) * 1000));
       return {
+        rowKey: m.key + ":" + activeSpec,
         label: m.label,
-        barW: (v / axMax) * 100 + "%",
-        rawPos: rawPct + "%",
-        rawW: rawPct + "%",
-        showRawRef: activeSpec !== "raw" && rawVal > 0,
+        barX: x(v).toFixed(1),
+        ciLoX: x(lo).toFixed(1),
+        ciHiX: x(hi).toFixed(1),
+        baseline: this.fmt(wo),
+        withPr: this.fmt(w),
         coefLabel: "+" + this.fmt(v),
+        ciLabel: "[" + this.fmt(lo) + ", " + this.fmt(hi) + "]",
+        mult: multLabel,
+        multColor: strong ? "#fff" : NAVY,
+        multBg: strong ? NAVY : "oklch(0.92 0.03 255)",
       };
     });
     const specNote = specDefs.find((d) => d.key === activeSpec).note;
@@ -748,11 +877,11 @@ class Component extends DCLogic {
     const sortedEnts = [...this.ENTITIES].sort((a, b) => b.papers - a.papers);
     const entityOptions = sortedEnts.map((e) => ({
       name: e.name,
-      optLabel: e.name + " — " + e.type + " (" + e.papers.toLocaleString("en-US") + ")",
+      optLabel: e.name + " - " + e.type + " (" + e.papers.toLocaleString("en-US") + ")",
     }));
     const selE = this.state.entity || (sortedEnts[0] && sortedEnts[0].name);
     const eIdx = Math.max(0, sortedEnts.findIndex((e) => e.name === selE));
-    const eObj = sortedEnts[eIdx] || sortedEnts[0] || { name: "—", papers: 0, withPr: 0 };
+    const eObj = sortedEnts[eIdx] || sortedEnts[0] || { name: "-", papers: 0, withPr: 0 };
     const entityRows = this.METRICS.map((m, mi) => {
       const v = this.entityVals(eIdx, m, mi);
       const hasWith = v.withPr > 0;
@@ -762,7 +891,7 @@ class Component extends DCLogic {
         label: m.label,
         wW: hasWith ? (v.w / rowMax) * 100 + "%" : "0%",
         woW: (v.wo / rowMax) * 100 + "%",
-        wVal: hasWith ? this.fmt(v.w) : "—",
+        wVal: hasWith ? this.fmt(v.w) : "-",
         woVal: this.fmt(v.wo),
         mult: ratio == null ? "n/a" : ("×" + (ratio >= 3 ? ratio.toFixed(0) : ratio.toFixed(1))),
       };
@@ -802,7 +931,7 @@ class Component extends DCLogic {
 
     return {
       showTakeaways, outcomeCards, scaleRows, specLadder, forestRows,
-      specChips, specRows, specNote, showRawLegend,
+      specChips, specRows, specNote, showRawLegend, showRawRefLine, rawLegendLabel, rawRefX, activeSpec,
       entityOptions, selectedEntity: selE, entityRows, entityMeta,
       onEntityChange: (ev) => this.setState({ entity: ev.target.value }),
       hetPanels,

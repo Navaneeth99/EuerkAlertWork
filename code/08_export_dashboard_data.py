@@ -24,6 +24,7 @@ from utils.impact_analysis import (  # noqa: E402
     DEFAULT_ALTMET_CSV,
     DEFAULT_DASHBOARD_DIR,
     DEFAULT_DUCKDB,
+    count_csv_data_rows,
     load_paper_df,
     save_dashboard_cache,
 )
@@ -75,11 +76,13 @@ def main() -> None:
         f"({int(paper_df['has_pr'].sum()):,} with PR)."
     )
 
+    n_altmet_source = count_csv_data_rows(args.altmet_csv)
     print(f"Writing cache to {args.out_dir.resolve()} …")
     paths = save_dashboard_cache(
         paper_df,
         out_dir=args.out_dir,
         include_coefficients=not args.no_coefficients,
+        n_altmet_source=n_altmet_source or None,
     )
     for name, path in paths.items():
         print(f"  {name}: {path} ({path.stat().st_size / 1e6:.1f} MB)")
