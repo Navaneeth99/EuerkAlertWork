@@ -369,7 +369,7 @@ nav .report-nav-link:focus-visible::before {
       </div>
       <div style="margin-top:10px; padding:12px 16px; border:1px dashed oklch(0.85 0.01 255); border-radius:6px; background:oklch(0.99 0.002 255);">
         <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:oklch(0.6 0.02 255); margin-bottom:4px;">Notes</div>
-        <p style="margin:0; font-size:13.5px; color:oklch(0.42 0.02 255); text-wrap:pretty;"><b>What:</b> Entity fixed-effects estimates of the PR premium for all seven outcomes - the main result. Each row compares papers with and without a press release <i>within the same university or journal entity</i>, holding the entity constant.  <br> <b>How to read:</b> The bar and dot are the estimated premium; whiskers are the 95% CI. Columns show typical without-PR and with-PR levels and the premium as a share of baseline.  <br><b>Example:</b> For Attention Score, a without-PR mean of ~2.7 and a premium of ~+130 implies press-released papers score roughly <b>18× the usual level</b> for that entity (~133 vs 2.7) - the headline finding.   </p>
+        <p style="margin:0; font-size:13.5px; color:oklch(0.42 0.02 255); text-wrap:pretty;"><b>What:</b> Entity fixed-effects estimates of the PR premium for all seven outcomes - the main result. Each row compares papers with and without a press release <i>within the same university or journal entity</i>, holding the entity constant.  <br> <b>How to read:</b> The bar and dot are the estimated premium; whiskers are the 95% CI. Columns show typical without-PR and with-PR levels and the premium as a share of baseline.  <br><b>Example:</b> For Attention Score, a without-PR mean of ~2.7 and a premium of ~+130 implies press-released papers score roughly <b>18× the usual level</b> for that entity (~133 vs 2.7).   </p>
       </div>
       <div style="display:flex; gap:14px; margin-top:14px; background:#fff; border:1px solid oklch(0.89 0.008 255); border-radius:8px; padding:20px 24px; max-width:960px;">
         <div style="font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.12em; color:#1F4E79; flex:0 0 150px; padding-top:2px;">Insights</div>
@@ -431,7 +431,7 @@ nav .report-nav-link:focus-visible::before {
       </div>
       <div style="margin-top:10px; padding:12px 16px; border:1px dashed oklch(0.85 0.01 255); border-radius:6px; background:oklch(0.99 0.002 255);">
         <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:oklch(0.6 0.02 255); margin-bottom:4px;">Notes</div>
-        <p style="margin:0; font-size:13.5px; color:oklch(0.42 0.02 255); text-wrap:pretty;"><b>What:</b> The same seven outcomes under six specifications - from the naive raw gap to progressively stricter fixed effects. Use the chips to see how much of the PR association survives each control strategy.  <br> <b>How to read:</b> Bar length = PR premium on a scale locked to the raw gap (dashed grey line). Shorter FE bars mean controls absorb part of the raw difference; numbers in the columns update with the active spec.  <br> <b>Example:</b> Attention Score might show a raw premium of ~+128, a university FE premium of ~+140 on institution papers, and an entity FE premium of ~+130 - the bar shrinks or grows relative to the dashed raw line, showing which confounders matter most.</br> </p>
+        <p style="margin:0; font-size:13.5px; color:oklch(0.42 0.02 255); text-wrap:pretty;"><b>What:</b> The same seven outcomes under six specifications - from the naive raw gap to stricter fixed effects. Use the chips to see how much of the PR association survives each control strategy.  <br> <b>How to read:</b> Bar length = PR premium on a scale locked to the raw gap (dashed grey line). Shorter FE bars mean controls absorb part of the raw difference; numbers in the columns update with the active spec.  <br> <b>Example:</b> Attention Score might show a raw premium of ~+128, a university FE premium of ~+140 on institution papers, and an entity FE premium of ~+130 - the bar shrinks or grows relative to the dashed raw line, showing which confounders matter most.</br> </p>
       </div>
       <div style="display:flex; gap:14px; margin-top:14px; background:#fff; border:1px solid oklch(0.89 0.008 255); border-radius:8px; padding:20px 24px; max-width:960px;">
         <div style="font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.12em; color:#1F4E79; flex:0 0 150px; padding-top:2px;">Insights</div>
@@ -767,7 +767,7 @@ class Component extends DCLogic {
       },
       {
         key: "fe",
-        label: "4 · Entity (University + Journal) FE",
+        label: "4 · Entity FE",
         note: "Entity fixed effects across universities and journals: y ~ has_pr | entity_name.",
       },
       {
