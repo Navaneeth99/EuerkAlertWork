@@ -19,6 +19,18 @@ DEFAULT_PAPER_PARQUET = DEFAULT_DASHBOARD_DIR / "paper_df.parquet"
 DEFAULT_COEF_CSV = DEFAULT_DASHBOARD_DIR / "coefficient_forest.csv"
 DEFAULT_DASHBOARD_META = DEFAULT_DASHBOARD_DIR / "meta.json"
 
+PUB_YEAR_MIN = 2015
+PUB_YEAR_MAX = 2025
+
+
+def pub_year_range(pub_year: pd.Series) -> tuple[int | None, int | None]:
+    """Min/max publication year within the analysis window (ignores out-of-scope dates)."""
+    s = pd.to_numeric(pub_year, errors="coerce")
+    in_scope = s[s.between(PUB_YEAR_MIN, PUB_YEAR_MAX)]
+    if not in_scope.notna().any():
+        return None, None
+    return int(in_scope.min()), int(in_scope.max())
+
 
 def count_csv_data_rows(csv_path: Path) -> int:
     """Count data rows in a CSV (excludes header). Does not load into memory."""
@@ -516,8 +528,8 @@ def save_dashboard_cache(
         "n_fields": int(
             slim.loc[slim["field_id"].astype(str).str.len() > 0, "field_id"].nunique()
         ) if "field_id" in slim.columns else 0,
-        "year_min": int(slim["pub_year"].min()) if slim["pub_year"].notna().any() else None,
-        "year_max": int(slim["pub_year"].max()) if slim["pub_year"].notna().any() else None,
+        "year_min": pub_year_range(slim["pub_year"])[0],
+        "year_max": pub_year_range(slim["pub_year"])[1],
         "columns": list(slim.columns),
         "include_coefficients": include_coefficients,
         "imputed_zeros": True,
