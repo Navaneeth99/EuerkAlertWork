@@ -22,7 +22,8 @@ COPY Processed/dashboard ./Processed/dashboard
 
 EXPOSE 8501
 
-HEALTHCHECK CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8501/_stcore/health')"
+HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=3 \
+  CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8501/_stcore/health')"
 
 CMD ["streamlit", "run", "code/dashboard/app.py", \
      "--server.port=8501", \

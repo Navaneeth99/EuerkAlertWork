@@ -645,9 +645,31 @@ def save_dashboard_cache(
     return paths
 
 
+def optimize_dashboard_memory(df: pd.DataFrame) -> pd.DataFrame:
+    """Shrink in-memory footprint for hosted runtimes with limited RAM."""
+    out = df.copy()
+    for col in ("category", "entity_name"):
+        if col in out.columns and out[col].dtype == object:
+            out[col] = out[col].astype("category")
+    for col in METRICS:
+        if col in out.columns:
+            out[col] = pd.to_numeric(out[col], errors="coerce").astype("float32")
+    if "total_mentions" in out.columns:
+        out["total_mentions"] = pd.to_numeric(
+            out["total_mentions"], errors="coerce"
+        ).astype("float32")
+    if "pub_year" in out.columns:
+        out["pub_year"] = pd.to_numeric(out["pub_year"], errors="coerce").astype(
+            "Int16"
+        )
+    return out
+
+
 def load_paper_df_from_cache(
     parquet_path: Path = DEFAULT_PAPER_PARQUET,
     sample_size: int | None = None,
+    *,
+    memory_efficient: bool = True,
 ) -> pd.DataFrame:
     """Load the prebuilt dashboard parquet (fast path for Streamlit)."""
     path = Path(parquet_path)
@@ -672,6 +694,8 @@ def load_paper_df_from_cache(
             paper_df[col] = paper_df[col].astype("string")
     if sample_size is not None and sample_size > 0:
         paper_df = _sample_up_to_n(paper_df, n=sample_size, group_col="has_pr")
+    if memory_efficient:
+        paper_df = optimize_dashboard_memory(paper_df)
     return paper_df
 
 
