@@ -1,4 +1,7 @@
 -- Single source of truth for PR -> doi_list entity_name mapping.
+-- Creates scope_name_text_search_long (one row per PR per category, with flags).
+-- matching_pipeline.setup pivots that into wide scope_name_text_search
+-- (journal / institution / publisher columns).
 -- canonical_name must match doi_list.entity_name exactly.
 -- Requires: pr_base view (matching_pipeline.setup)
 -- OpenAlex alternate titles come from openalex_alternate_titles.json
@@ -7,7 +10,7 @@
 -- Chinese Academy of Sciences is aliased to … Headquarters to match DOIList.
 -- manual_variations: only near-identical name forms (&/and, Tech, Univ, hyphens,
 --   known acronyms). Do NOT map to different journals/orgs.
-CREATE OR REPLACE TABLE scope_name_text_search AS
+CREATE OR REPLACE TABLE scope_name_text_search_long AS
 WITH manual_variations AS (
   SELECT * FROM (VALUES
   ('journal', 'Advanced Devices & Instrumentation', 'Advanced Devices & Instrumentation'),
@@ -63,15 +66,15 @@ WITH manual_variations AS (
   ('journal', 'Journal of EMDR Practice and Research', 'EMDR Practice and Research'),
   ('journal', 'Cancer Communications', 'Cancer Communications'),
   ('journal', 'Computational and Structural Biotechnology Journal', 'Computational and Structural Biotechnology Journal'),
-  ('institution', 'Science Partner Journals', 'Science Partner Journals'),
-  ('institution', 'Science Partner Journals', 'Science Partner Journal'),
-  ('institution', 'Science Partner Journals', 'Science Partner Journals (SPJ)'),
-  ('institution', 'Science Partner Journals', 'AAAS Science Partner Journals'),
-  ('institution', 'Beijing Institute of Technology Press Co., Ltd', 'Beijing Institute of Technology Press Co., Ltd'),
-  ('institution', 'Beijing Institute of Technology Press Co., Ltd', 'Beijing Institute of Technology Press Co Ltd'),
-  ('institution', 'Beijing Institute of Technology Press Co., Ltd', 'Beijing Institute of Technology Press'),
-  ('institution', 'Beijing Institute of Technology Press Co., Ltd', 'Beijing Inst of Technology Press'),
-  ('institution', 'Beijing Institute of Technology Press Co., Ltd', 'BIT Press'),
+  ('publisher', 'Science Partner Journals', 'Science Partner Journals'),
+  ('publisher', 'Science Partner Journals', 'Science Partner Journal'),
+  ('publisher', 'Science Partner Journals', 'Science Partner Journals (SPJ)'),
+  ('publisher', 'Science Partner Journals', 'AAAS Science Partner Journals'),
+  ('publisher', 'Beijing Institute of Technology Press Co., Ltd', 'Beijing Institute of Technology Press Co., Ltd'),
+  ('publisher', 'Beijing Institute of Technology Press Co., Ltd', 'Beijing Institute of Technology Press Co Ltd'),
+  ('publisher', 'Beijing Institute of Technology Press Co., Ltd', 'Beijing Institute of Technology Press'),
+  ('publisher', 'Beijing Institute of Technology Press Co., Ltd', 'Beijing Inst of Technology Press'),
+  ('publisher', 'Beijing Institute of Technology Press Co., Ltd', 'BIT Press'),
   ('institution', 'Chinese Academy of Sciences Headquarters', 'Chinese Academy of Sciences Headquarters'),
   ('institution', 'Chinese Academy of Sciences Headquarters', 'Chinese Academy of Sciences'),
   ('institution', 'Chinese Academy of Sciences Headquarters', 'Chinese Academy of Sciences (CAS)'),
@@ -120,15 +123,15 @@ WITH manual_variations AS (
   ('institution', 'Shenzhen Institute of Advanced Technology, Chinese Academy of Sciences', 'Shenzhen Institute of Advanced Technology'),
   ('institution', 'Shenzhen Institute of Advanced Technology, Chinese Academy of Sciences', 'Shenzhen Institutes of Advanced Technology'),
   ('institution', 'Shenzhen Institute of Advanced Technology, Chinese Academy of Sciences', 'SIAT CAS'),
-  ('institution', 'Higher Education Press', 'Higher Education Press'),
-  ('institution', 'Higher Education Press', 'Higher Ed Press'),
-  ('institution', 'Tsinghua University Press', 'Tsinghua University Press'),
-  ('institution', 'Tsinghua University Press', 'Tsinghua Univ. Press'),
-  ('institution', 'Tsinghua University Press', 'Tsinghua Univ Press'),
-  ('institution', 'Shanghai Jiao Tong University Journal Center', 'Shanghai Jiao Tong University Journal Center'),
-  ('institution', 'Shanghai Jiao Tong University Journal Center', 'Shanghai Jiao Tong University Journal Centre'),
-  ('institution', 'Shanghai Jiao Tong University Journal Center', 'Shanghai Jiao Tong Univ Journal Center'),
-  ('institution', 'Shanghai Jiao Tong University Journal Center', 'SJTU Journal Center'),
+  ('publisher', 'Higher Education Press', 'Higher Education Press'),
+  ('publisher', 'Higher Education Press', 'Higher Ed Press'),
+  ('publisher', 'Tsinghua University Press', 'Tsinghua University Press'),
+  ('publisher', 'Tsinghua University Press', 'Tsinghua Univ. Press'),
+  ('publisher', 'Tsinghua University Press', 'Tsinghua Univ Press'),
+  ('publisher', 'Shanghai Jiao Tong University Journal Center', 'Shanghai Jiao Tong University Journal Center'),
+  ('publisher', 'Shanghai Jiao Tong University Journal Center', 'Shanghai Jiao Tong University Journal Centre'),
+  ('publisher', 'Shanghai Jiao Tong University Journal Center', 'Shanghai Jiao Tong Univ Journal Center'),
+  ('publisher', 'Shanghai Jiao Tong University Journal Center', 'SJTU Journal Center'),
   ('institution', 'Nagoya University', 'Nagoya University'),
   ('institution', 'Nagoya University', 'Nagoya Univ'),
   ('institution', 'Nagoya University', 'Univ Nagoya'),
@@ -194,6 +197,7 @@ name_variations_safe AS (
 matches AS (
   SELECT
     pr."PR ID",
+    nv.entity_category,
     nv.canonical_name,
     nv.search_name,
     case when coalesce(pr."Full Text", '') ILIKE '%' || nv.search_name || '%' then 1 else 0 end as matched_in_full_text_flag,
@@ -208,33 +212,46 @@ matches AS (
     OR coalesce(pr."Organization", '') ILIKE '%' || nv.search_name || '%'
     OR coalesce(pr."Journal (Matched)", '') ILIKE '%' || nv.search_name || '%'
     OR coalesce(pr."Journal (Typed)", '') ILIKE '%' || nv.search_name || '%'
+),
+-- One best hit per PR per category (not one overall winner).
+best_per_category AS (
+  SELECT
+    "PR ID",
+    entity_category,
+    canonical_name,
+    search_name,
+    matched_in_organization_flag,
+    matched_in_journal_typed_flag,
+    matched_in_journal_matched_flag,
+    matched_in_summary_flag,
+    matched_in_full_text_flag
+  FROM (
+    SELECT
+      *,
+      row_number() OVER (
+        PARTITION BY "PR ID", entity_category
+        ORDER BY
+          matched_in_organization_flag DESC,
+          matched_in_journal_matched_flag DESC,
+          matched_in_journal_typed_flag DESC,
+          matched_in_summary_flag DESC,
+          matched_in_full_text_flag DESC,
+          length(search_name) DESC,
+          canonical_name ASC
+      ) AS rn
+    FROM matches
+  ) AS ranked
+  WHERE rn = 1
 )
-select "PR ID", canonical_name, search_name,
- matched_in_organization_flag,
- matched_in_journal_typed_flag,
- matched_in_journal_matched_flag,
- matched_in_summary_flag,
- matched_in_full_text_flag from
-(select "PR ID", canonical_name, search_name,
- matched_in_organization_flag,
- matched_in_journal_typed_flag,
- matched_in_journal_matched_flag,
- matched_in_summary_flag,
- matched_in_full_text_flag,row_number() over
-(partition by "PR ID" order by
-matched_in_organization_flag desc,
-matched_in_journal_matched_flag desc,
-matched_in_journal_typed_flag desc,
-matched_in_summary_flag desc,
-matched_in_full_text_flag desc,
-length(search_name) desc) as rn from matches) as m where rn = 1;
-
-SELECT count(*), count(distinct "PR ID") from scope_name_text_search;
--- Summary: which names appear and how often
 SELECT
+  "PR ID",
+  entity_category,
   canonical_name,
   search_name,
-  count(DISTINCT "PR ID") AS pr_count
-FROM scope_name_text_search
-GROUP BY 1, 2
-ORDER BY pr_count DESC;
+  matched_in_organization_flag,
+  matched_in_journal_typed_flag,
+  matched_in_journal_matched_flag,
+  matched_in_summary_flag,
+  matched_in_full_text_flag
+FROM best_per_category;
+

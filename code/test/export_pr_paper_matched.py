@@ -2,7 +2,7 @@
 
 Columns:
   - press-release columns from pr_base (excluding Summary and Full Text)
-  - match_method, confidence_tier, is_matched
+  - journal, institution, publisher, match_method, confidence_tier, is_matched
   - for matched rows: entity_name, doi, publication_date from DOIList
     (prefixed doi_list_* to avoid clashing with PR DOI / Publication Date)
 
@@ -29,33 +29,39 @@ def export_pr_paper_matched_full(con, out: Path = DEFAULT_OUT) -> Path:
     tmp = out.with_suffix(out.suffix + ".tmp")
     path = tmp.resolve().as_posix()
 
-    # Prefer exact entity+doi join to DOIList; fall back to doi-only if entity missing.
+    # Prefer doi_list row matching any of the PR's filled entity columns.
     # Drop Summary / Full Text to keep the export smaller.
     con.execute(f"""
         COPY (
             SELECT
                 pr.* EXCLUDE ("Summary", "Full Text"),
+                m.journal,
+                m.institution,
+                m.publisher,
                 m.match_method,
                 m.confidence_tier,
                 m.is_matched,
                 dl.entity_name AS doi_list_entity_name,
+                dl.category AS doi_list_category,
                 dl.doi AS doi_list_doi,
                 dl.publication_date AS doi_list_publication_date
             FROM pr_paper_matched m
             JOIN pr_base pr
               ON CAST(pr."PR ID" AS VARCHAR) = CAST(m.pr_id AS VARCHAR)
             LEFT JOIN LATERAL (
-                SELECT d.entity_name, d.doi, d.publication_date
+                SELECT d.entity_name, d.category, d.doi, d.publication_date
                 FROM doi_list d
                 WHERE m.is_matched = 1
                   AND m.matched_doi IS NOT NULL
                   AND trim(CAST(m.matched_doi AS VARCHAR)) != ''
                   AND lower(trim(d.doi)) = lower(trim(CAST(m.matched_doi AS VARCHAR)))
                 ORDER BY CASE
-                    WHEN m.entity_name IS NOT NULL
-                     AND d.entity_name = m.entity_name THEN 0
-                    ELSE 1
-                END
+                    WHEN m.journal IS NOT NULL AND d.entity_name = m.journal THEN 0
+                    WHEN m.institution IS NOT NULL AND d.entity_name = m.institution THEN 1
+                    WHEN m.publisher IS NOT NULL AND d.entity_name = m.publisher THEN 2
+                    ELSE 3
+                END,
+                d.entity_name
                 LIMIT 1
             ) dl ON true
         ) TO '{path}' (HEADER, DELIMITER ',', FORMAT CSV)

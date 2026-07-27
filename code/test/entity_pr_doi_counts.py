@@ -35,6 +35,20 @@ STRONG_SCOPE_PRED = """
 )
 """
 
+ENTITY_UNPIVOT = """
+SELECT pr_id, journal AS entity_name, is_matched
+FROM pr_paper_matched
+WHERE journal IS NOT NULL AND trim(journal) != ''
+UNION ALL
+SELECT pr_id, institution AS entity_name, is_matched
+FROM pr_paper_matched
+WHERE institution IS NOT NULL AND trim(institution) != ''
+UNION ALL
+SELECT pr_id, publisher AS entity_name, is_matched
+FROM pr_paper_matched
+WHERE publisher IS NOT NULL AND trim(publisher) != ''
+"""
+
 
 def _from_duckdb(category: str | None, strong_scope: bool):
     from utils.eurekalert_duckdb import connect, setup_views
@@ -52,10 +66,10 @@ def _from_duckdb(category: str | None, strong_scope: bool):
             f"'{category.lower().strip()}'"
         )
 
-    has_scope = con.execute(
+    has_scope_long = con.execute(
         """
         SELECT count(*) FROM information_schema.tables
-        WHERE table_schema = 'main' AND table_name = 'scope_name_text_search'
+        WHERE table_schema = 'main' AND table_name = 'scope_name_text_search_long'
         """
     ).fetchone()[0]
     has_pr = con.execute(
@@ -66,19 +80,19 @@ def _from_duckdb(category: str | None, strong_scope: bool):
     ).fetchone()[0]
 
     if strong_scope:
-        if not has_scope:
+        if not has_scope_long:
             raise RuntimeError(
-                "scope_name_text_search missing; run python code/06_matching_pipeline.py"
+                "scope_name_text_search_long missing; "
+                "run python code/06_matching_pipeline.py"
             )
         matched_cte = ""
         matched_cols = "0 AS n_prs_matched,"
         matched_join = ""
         if has_pr:
-            matched_cte = """,
+            matched_cte = f""",
             matched AS (
                 SELECT entity_name, sum(is_matched) AS n_prs_matched
-                FROM pr_paper_matched
-                WHERE entity_name IS NOT NULL AND trim(entity_name) != ''
+                FROM ({ENTITY_UNPIVOT}) e
                 GROUP BY entity_name
             )"""
             matched_cols = "coalesce(m.n_prs_matched, 0) AS n_prs_matched,"
@@ -99,13 +113,13 @@ def _from_duckdb(category: str | None, strong_scope: bool):
                 GROUP BY entity_name
             ),
             scope_all AS (
-                SELECT canonical_name, count(*) AS n_prs_all
-                FROM scope_name_text_search
+                SELECT canonical_name, count(DISTINCT "PR ID") AS n_prs_all
+                FROM scope_name_text_search_long
                 GROUP BY canonical_name
             ),
             scope_strong AS (
-                SELECT canonical_name, count(*) AS n_prs
-                FROM scope_name_text_search
+                SELECT canonical_name, count(DISTINCT "PR ID") AS n_prs
+                FROM scope_name_text_search_long
                 WHERE {STRONG_SCOPE_PRED}
                 GROUP BY canonical_name
             )
@@ -147,8 +161,7 @@ def _from_duckdb(category: str | None, strong_scope: bool):
                     entity_name,
                     count(*) AS n_prs,
                     sum(is_matched) AS n_prs_matched
-                FROM pr_paper_matched
-                WHERE entity_name IS NOT NULL AND trim(entity_name) != ''
+                FROM ({ENTITY_UNPIVOT}) e
                 GROUP BY entity_name
             )
             SELECT

@@ -61,7 +61,9 @@ def cached_load_paper_df(parquet_path: str) -> pd.DataFrame:
 
 
 @st.cache_data(show_spinner="Fitting fixed-effects models…")
-def cached_fit_coefficients(df: pd.DataFrame, fe_col: str) -> pd.DataFrame:
+def cached_fit_coefficients(
+    df: pd.DataFrame, fe_col: str | list[str]
+) -> pd.DataFrame:
     return fit_coefficient_forest(df, fe_col=fe_col)
 
 
@@ -137,6 +139,15 @@ def main() -> None:
         last_author_coef_df = cached_read_coef_for_categories(
             cats_key, str(DEFAULT_DASHBOARD_DIR), "last_author"
         )
+        univ_jour_coef_df = cached_read_coef_for_categories(
+            ("institution", "journal"), str(DEFAULT_DASHBOARD_DIR), "entity"
+        )
+        univ_jour_field_coef_df = cached_read_coef_for_categories(
+            ("institution", "journal"), str(DEFAULT_DASHBOARD_DIR), "entity_field"
+        )
+        univ_jour_last_author_coef_df = cached_read_coef_for_categories(
+            ("institution", "journal"), str(DEFAULT_DASHBOARD_DIR), "entity_last_author"
+        )
     except TypeError as exc:
         # Stale module / cache from before fe= support — fall back to entity only.
         st.warning(f"Coefficient cache loader mismatch ({exc}); using entity FE only.")
@@ -147,7 +158,24 @@ def main() -> None:
         journal_coef_df = _load(["journal"], out_dir=DEFAULT_DASHBOARD_DIR)
         field_coef_df = _load(list(cats_key), out_dir=DEFAULT_DASHBOARD_DIR, fe="field")
         last_author_coef_df = None
+        univ_jour_coef_df = None
+        univ_jour_field_coef_df = None
+        univ_jour_last_author_coef_df = None
 
+    uj_df = paper_df.loc[paper_df["category"].isin(["institution", "journal"])]
+    n_uj_entities = int(uj_df["entity_name"].nunique()) if len(uj_df) else 0
+    n_uj_fields = 0
+    n_uj_authors = 0
+    if len(uj_df) and "field_id" in uj_df.columns:
+        n_uj_fields = int(
+            uj_df.loc[uj_df["field_id"].astype(str).str.len() > 0, "field_id"].nunique()
+        )
+    if len(uj_df) and "last_author_id" in uj_df.columns:
+        n_uj_authors = int(
+            uj_df.loc[
+                uj_df["last_author_id"].astype(str).str.len() > 0, "last_author_id"
+            ].nunique()
+        )
     n_with = int(paper_df["has_pr"].sum())
     n_without = len(paper_df) - n_with
     n_entities = int(paper_df["entity_name"].nunique())
@@ -199,6 +227,41 @@ def main() -> None:
         except Exception:  # noqa: BLE001
             last_author_coef_df = None
 
+    can_fit_uj = (
+        len(uj_df) >= 50
+        and int(uj_df["has_pr"].sum()) >= 5
+        and int((~uj_df["has_pr"]).sum()) >= 5
+    )
+    if univ_jour_coef_df is None and can_fit_uj and n_uj_entities >= 2:
+        try:
+            univ_jour_coef_df = cached_fit_coefficients(uj_df, "entity_name")
+        except Exception:  # noqa: BLE001
+            univ_jour_coef_df = None
+    if (
+        univ_jour_field_coef_df is None
+        and can_fit_uj
+        and n_uj_entities >= 2
+        and n_uj_fields >= 2
+    ):
+        try:
+            univ_jour_field_coef_df = cached_fit_coefficients(
+                uj_df, ["entity_name", "field_id"]
+            )
+        except Exception:  # noqa: BLE001
+            univ_jour_field_coef_df = None
+    if (
+        univ_jour_last_author_coef_df is None
+        and can_fit_uj
+        and n_uj_entities >= 2
+        and n_uj_authors >= 2
+    ):
+        try:
+            univ_jour_last_author_coef_df = cached_fit_coefficients(
+                uj_df, ["entity_name", "last_author_id"]
+            )
+        except Exception:  # noqa: BLE001
+            univ_jour_last_author_coef_df = None
+
     payload = build_report_payload(
         paper_df,
         coef_df,
@@ -206,6 +269,9 @@ def main() -> None:
         journal_coef_df=journal_coef_df,
         field_coef_df=field_coef_df,
         last_author_coef_df=last_author_coef_df,
+        univ_jour_coef_df=univ_jour_coef_df,
+        univ_jour_field_coef_df=univ_jour_field_coef_df,
+        univ_jour_last_author_coef_df=univ_jour_last_author_coef_df,
     )
     template, dclogic = load_report_assets(
         REPORT_TEMPLATE.stat().st_mtime,

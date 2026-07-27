@@ -1,15 +1,15 @@
 metric,metric_label,group,mean,se,n
-attention_score,Attention Score,With PR,37.80649038461539,1.6842937414406522,832
-attention_score,Attention Score,Without PR,3.883731778425656,0.26683114347037096,8575
-cited_by_count,Citations,With PR,27.682692307692307,2.2554132246279495,832
-cited_by_count,Citations,Without PR,26.446297376093295,0.7351712420952944,8575
-news_mentions,News Mentions,With PR,4.421875,0.20553963857318702,832
-news_mentions,News Mentions,Without PR,0.27090379008746357,0.02986318601130135,8575
-patent_mentions,Patent Mentions,With PR,0.078125,0.019831697897442314,832
-patent_mentions,Patent Mentions,Without PR,0.16489795918367348,0.023682269709163435,8575
-policy_mentions,Policy Mentions,With PR,0.025240384615384616,0.013737037257465124,832
-policy_mentions,Policy Mentions,Without PR,0.021690962099125365,0.0032487208602000987,8575
-x_post_mentions,X Mentions,With PR,7.403846153846154,0.3812185111504386,832
-x_post_mentions,X Mentions,Without PR,4.1755102040816325,0.3275641066376593,8575
-facebook_mentions,Facebook Mentions,With PR,0.7175480769230769,0.027282411670769727,832
-facebook_mentions,Facebook Mentions,Without PR,0.3491545189504373,0.008299752013778697,8575
+attention_score,Attention Score,With PR,38.43582474226804,1.495064320399156,970
+attention_score,Attention Score,Without PR,3.897480867346939,0.24583070120195374,9408
+cited_by_count,Citations,With PR,26.89896907216495,1.957627841656434,970
+cited_by_count,Citations,Without PR,26.209183673469386,0.6787123225046582,9408
+news_mentions,News Mentions,With PR,4.5,0.18234532205596884,970
+news_mentions,News Mentions,Without PR,0.27774234693877553,0.027562042399693534,9408
+patent_mentions,Patent Mentions,With PR,0.07216494845360824,0.01722718126609663,970
+patent_mentions,Patent Mentions,Without PR,0.1556122448979592,0.021641581938102436,9408
+policy_mentions,Policy Mentions,With PR,0.023711340206185566,0.011960246764178686,970
+policy_mentions,Policy Mentions,Without PR,0.022427721088435375,0.0030776352881880698,9408
+x_post_mentions,X Mentions,With PR,7.520618556701031,0.3566197540862964,970
+x_post_mentions,X Mentions,Without PR,4.097470238095238,0.2990589982998796,9408
+facebook_mentions,Facebook Mentions,With PR,0.7051546391752578,0.02479098258120982,970
+facebook_mentions,Facebook Mentions,Without PR,0.36989795918367346,0.008004721373911408,9408

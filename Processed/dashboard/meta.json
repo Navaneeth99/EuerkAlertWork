@@ -1,8 +1,10 @@
 {
-  "created_at_utc": "2026-07-22T18:18:34.700479+00:00",
-  "n_papers": 1053971,
-  "n_with_pr": 14178,
+  "created_at_utc": "2026-07-26T21:53:44.582937+00:00",
+  "n_papers": 1229338,
+  "n_with_pr": 18461,
+  "n_altmet_source": 1246222,
   "n_entities": 43,
+  "n_fields": 26,
   "year_min": 2015,
   "year_max": 2027,
   "columns": [
@@ -12,6 +14,9 @@
     "publication_date",
     "pub_year",
     "has_pr",
+    "pr_journal",
+    "pr_institution",
+    "pr_publisher",
     "patent_mentions",
     "policy_mentions",
     "news_mentions",
@@ -23,7 +28,9 @@
     "attention_score",
     "total_mentions",
     "last_author_id",
-    "last_author_name"
+    "last_author_name",
+    "field_id",
+    "field_name"
   ],
   "include_coefficients": true,
   "imputed_zeros": true,
@@ -38,9 +45,10 @@
         "institution"
       ],
       "key": "institution",
-      "n_papers": 1029172,
-      "n_with_pr": 12626,
+      "n_papers": 1202557,
+      "n_with_pr": 16702,
       "has_coefficients": true,
+      "has_field_coefficients": true,
       "has_last_author_coefficients": true
     },
     {
@@ -48,9 +56,10 @@
         "journal"
       ],
       "key": "journal",
-      "n_papers": 9407,
-      "n_with_pr": 832,
+      "n_papers": 10378,
+      "n_with_pr": 970,
       "has_coefficients": true,
+      "has_field_coefficients": true,
       "has_last_author_coefficients": true
     },
     {
@@ -58,9 +67,10 @@
         "publisher"
       ],
       "key": "publisher",
-      "n_papers": 15392,
-      "n_with_pr": 720,
+      "n_papers": 16403,
+      "n_with_pr": 789,
       "has_coefficients": true,
+      "has_field_coefficients": true,
       "has_last_author_coefficients": true
     },
     {
@@ -69,9 +79,10 @@
         "journal"
       ],
       "key": "institution__journal",
-      "n_papers": 1038579,
-      "n_with_pr": 13458,
+      "n_papers": 1212935,
+      "n_with_pr": 17672,
       "has_coefficients": true,
+      "has_field_coefficients": true,
       "has_last_author_coefficients": true
     },
     {
@@ -80,9 +91,10 @@
         "publisher"
       ],
       "key": "institution__publisher",
-      "n_papers": 1044564,
-      "n_with_pr": 13346,
+      "n_papers": 1218960,
+      "n_with_pr": 17491,
       "has_coefficients": true,
+      "has_field_coefficients": true,
       "has_last_author_coefficients": true
     },
     {
@@ -91,9 +103,10 @@
         "publisher"
       ],
       "key": "journal__publisher",
-      "n_papers": 24799,
-      "n_with_pr": 1552,
+      "n_papers": 26781,
+      "n_with_pr": 1759,
       "has_coefficients": true,
+      "has_field_coefficients": true,
       "has_last_author_coefficients": true
     },
     {
@@ -103,9 +116,10 @@
         "publisher"
       ],
       "key": "institution__journal__publisher",
-      "n_papers": 1053971,
-      "n_with_pr": 14178,
+      "n_papers": 1229338,
+      "n_with_pr": 18461,
       "has_coefficients": true,
+      "has_field_coefficients": true,
       "has_last_author_coefficients": true
     }
   ]

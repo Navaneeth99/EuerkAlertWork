@@ -56,6 +56,10 @@ DASHBOARD_COLUMNS = [
     "publication_date",
     "pub_year",
     "has_pr",
+    # PR-side scope entities from pr_paper_matched (nullable; paper may have several).
+    "pr_journal",
+    "pr_institution",
+    "pr_publisher",
     "patent_mentions",
     "policy_mentions",
     "news_mentions",
@@ -132,7 +136,7 @@ DEFAULT_SOURCE_NOTE = (
     "Source: OpenAlex, Altmetric, press release data. Bars: mean ± SE."
 )
 
-REQUIRED_PIPELINE_OBJECTS = ("embedding_title_match", "pr_paper_matched", "doi_list_norm")
+REQUIRED_PIPELINE_OBJECTS = ("pr_paper_matched", "doi_list_norm")
 
 
 def short_entity_name(name: str) -> str:
@@ -199,6 +203,17 @@ def _sample_up_to_n(df: pd.DataFrame, n: int, group_col: str = "has_pr") -> pd.D
     return pd.concat(parts, ignore_index=True)
 
 
+def _first_nonempty(series: pd.Series) -> object:
+    """First non-null / non-blank value in a Series (for PR entity aggregation)."""
+    for value in series:
+        if value is None or (isinstance(value, float) and np.isnan(value)):
+            continue
+        text = str(value).strip()
+        if text and text.lower() not in {"nan", "none", "null"}:
+            return value
+    return None
+
+
 def load_paper_df(
     duckdb_path: Path = DEFAULT_DUCKDB,
     altmet_csv: Path = DEFAULT_ALTMET_CSV,
@@ -208,18 +223,29 @@ def load_paper_df(
 
     Opens the DuckDB file read-only and queries the views/tables already built
     by the matching pipeline. Does NOT call setup_views().
+
+    Paper ``entity_name`` / ``category`` come from the Altmetric deliverable
+    (scoped to DOIs in ``doi_list``). Matched PRs also contribute nullable
+    ``pr_journal`` / ``pr_institution`` / ``pr_publisher`` from
+    ``pr_paper_matched`` (multiple PR hits for one DOI are coalesced).
     """
     import duckdb  # local import: dashboard runtime uses parquet cache only
 
     con = duckdb.connect(str(duckdb_path), read_only=True)
     assert_pipeline_objects(con)
 
+    # Paper match cascade already folds embedding into pr_paper_matched.
     press_release_query = """
-        SELECT * FROM (
-            (SELECT pr_id, matched_doi FROM embedding_title_match)
-            UNION
-            (SELECT pr_id, matched_doi FROM pr_paper_matched WHERE is_matched = 1)
-        )
+        SELECT
+            pr_id,
+            matched_doi,
+            journal,
+            institution,
+            publisher
+        FROM pr_paper_matched
+        WHERE is_matched = 1
+          AND matched_doi IS NOT NULL
+          AND trim(CAST(matched_doi AS VARCHAR)) != ''
     """
     press_release_data = con.sql(press_release_query).df()
     doi_list = con.sql("SELECT * FROM doi_list_norm").df()
@@ -233,33 +259,46 @@ def load_paper_df(
     for col in ("last_author_id", "last_author_name", "field_id", "field_name"):
         if col in doi_list.columns:
             doi_cols.append(col)
-    # One row per DOI for author/field fields (first entity wins if duplicated).
+    # One row per DOI for author/field/citation fields (first entity wins if duplicated).
     doi_author = (
-        doi_list[doi_cols]
-        .drop_duplicates("doi_norm", keep="first")
+        doi_list.sort_values(["doi_norm", "category", "entity_name"], kind="mergesort")[
+            doi_cols
+        ].drop_duplicates("doi_norm", keep="first")
     )
     altmet_df_joined = altmet_df.merge(doi_author, on="doi_norm", how="inner")
 
     press_release_data["matched_doi_norm"] = (
         press_release_data["matched_doi"].str.lower().str.strip()
     )
+    # One row per matched DOI: coalesce PR entity columns across multiple PRs.
+    pr_by_doi = (
+        press_release_data.groupby("matched_doi_norm", as_index=False)
+        .agg(
+            pr_id=("pr_id", "first"),
+            pr_journal=("journal", _first_nonempty),
+            pr_institution=("institution", _first_nonempty),
+            pr_publisher=("publisher", _first_nonempty),
+        )
+    )
+
     pr_altmet_merged = altmet_df_joined.merge(
-        press_release_data,
-        right_on="matched_doi_norm",
+        pr_by_doi,
         left_on="doi_norm",
+        right_on="matched_doi_norm",
         how="left",
         indicator="press_release_indicator",
     )
 
-    paper_df = (
-        pr_altmet_merged.sort_values(["doi_norm", "category"])
-        .drop_duplicates("doi_norm", keep="first")
-        .assign(
-            has_pr=lambda d: d["press_release_indicator"].eq("both"),
-            total_mentions=lambda d: d[MENTION_COLS].fillna(0).sum(axis=1),
-            pub_year=lambda d: pd.to_datetime(d["publication_date"]).dt.year,
-        )
+    paper_df = pr_altmet_merged.assign(
+        has_pr=lambda d: d["press_release_indicator"].eq("both"),
+        total_mentions=lambda d: d[MENTION_COLS].fillna(0).sum(axis=1),
+        pub_year=lambda d: pd.to_datetime(d["publication_date"]).dt.year,
     )
+
+    for col in ("pr_journal", "pr_institution", "pr_publisher"):
+        if col not in paper_df.columns:
+            paper_df[col] = pd.NA
+        paper_df[col] = paper_df[col].where(paper_df[col].notna(), other=pd.NA)
 
     if "last_author_id" not in paper_df.columns:
         paper_df["last_author_id"] = ""
@@ -269,10 +308,14 @@ def load_paper_df(
         paper_df["field_id"] = ""
     if "field_name" not in paper_df.columns:
         paper_df["field_name"] = ""
-    paper_df["last_author_id"] = paper_df["last_author_id"].fillna("").astype(str)
-    paper_df["last_author_name"] = paper_df["last_author_name"].fillna("").astype(str)
-    paper_df["field_id"] = paper_df["field_id"].fillna("").astype(str)
-    paper_df["field_name"] = paper_df["field_name"].fillna("").astype(str)
+
+    def _as_str_empty(series: pd.Series) -> pd.Series:
+        return series.map(lambda x: "" if pd.isna(x) else str(x))
+
+    paper_df["last_author_id"] = _as_str_empty(paper_df["last_author_id"])
+    paper_df["last_author_name"] = _as_str_empty(paper_df["last_author_name"])
+    paper_df["field_id"] = _as_str_empty(paper_df["field_id"])
+    paper_df["field_name"] = _as_str_empty(paper_df["field_name"])
 
     usable_weights = {k: v for k, v in ATTENTION_WEIGHTS.items() if k in paper_df.columns}
     paper_df["attention_score"] = sum(
@@ -291,6 +334,9 @@ def slim_paper_df_for_dashboard(paper_df: pd.DataFrame) -> pd.DataFrame:
     for col in ("last_author_id", "last_author_name", "field_id", "field_name"):
         if col not in out.columns:
             out[col] = ""
+    for col in ("pr_journal", "pr_institution", "pr_publisher"):
+        if col not in out.columns:
+            out[col] = pd.NA
     missing = [c for c in DASHBOARD_COLUMNS if c not in out.columns]
     if missing:
         raise KeyError(f"paper_df missing required dashboard columns: {missing}")
@@ -302,6 +348,8 @@ def slim_paper_df_for_dashboard(paper_df: pd.DataFrame) -> pd.DataFrame:
     out["last_author_name"] = out["last_author_name"].fillna("").astype(str)
     out["field_id"] = out["field_id"].fillna("").astype(str)
     out["field_name"] = out["field_name"].fillna("").astype(str)
+    for col in ("pr_journal", "pr_institution", "pr_publisher"):
+        out[col] = out[col].astype("string")
     return out
 
 
@@ -340,17 +388,26 @@ def coefficients_field_dir(out_dir: Path = DEFAULT_DASHBOARD_DIR) -> Path:
     return Path(out_dir) / "coefficients" / "by_field"
 
 
+def coefficients_mfe_dir(out_dir: Path = DEFAULT_DASHBOARD_DIR) -> Path:
+    return Path(out_dir) / "coefficients" / "by_mfe"
+
+
 def coef_path_for_categories(
     categories: list[str] | tuple[str, ...],
     *,
     out_dir: Path = DEFAULT_DASHBOARD_DIR,
     fe: str = "entity",
 ) -> Path:
+    key = category_combo_key(categories)
     if fe == "last_author":
-        return coefficients_last_author_dir(out_dir) / f"{category_combo_key(categories)}.csv"
+        return coefficients_last_author_dir(out_dir) / f"{key}.csv"
     if fe == "field":
-        return coefficients_field_dir(out_dir) / f"{category_combo_key(categories)}.csv"
-    return coefficients_dir(out_dir) / f"{category_combo_key(categories)}.csv"
+        return coefficients_field_dir(out_dir) / f"{key}.csv"
+    if fe == "entity_field":
+        return coefficients_mfe_dir(out_dir) / f"{key}__entity_field.csv"
+    if fe == "entity_last_author":
+        return coefficients_mfe_dir(out_dir) / f"{key}__entity_last_author.csv"
+    return coefficients_dir(out_dir) / f"{key}.csv"
 
 
 def overview_path_for_categories(
@@ -405,6 +462,8 @@ def save_dashboard_cache(
     last_author_dir.mkdir(parents=True, exist_ok=True)
     field_dir = coefficients_field_dir(out_dir)
     field_dir.mkdir(parents=True, exist_ok=True)
+    mfe_dir = coefficients_mfe_dir(out_dir)
+    mfe_dir.mkdir(parents=True, exist_ok=True)
 
     for combo in combos:
         subset = impute_mention_zeros(filter_by_categories(slim, combo))
@@ -416,6 +475,8 @@ def save_dashboard_cache(
         coef_ok = False
         last_author_ok = False
         field_ok = False
+        entity_field_ok = False
+        entity_last_author_ok = False
         if include_coefficients:
             n_with = int(subset["has_pr"].sum())
             n_without = int((~subset["has_pr"]).sum())
@@ -484,6 +545,54 @@ def save_dashboard_cache(
                 except Exception as exc:  # noqa: BLE001
                     print(f"  Skipping last-author FE cache for {key}: {exc}")
 
+            has_entity_field = all(
+                col in subset.columns for col in ("entity_name", "field_id")
+            )
+            if (
+                has_entity_field
+                and len(subset) >= 50
+                and n_with >= 5
+                and n_without >= 5
+                and n_entities >= 2
+                and n_fields >= 2
+            ):
+                try:
+                    ef_df = fit_coefficient_forest(
+                        subset, fe_col=["entity_name", "field_id"]
+                    )
+                    ef_path = coef_path_for_categories(
+                        combo, out_dir=out_dir, fe="entity_field"
+                    )
+                    ef_df.to_csv(ef_path, index=False)
+                    paths[f"coefficients_entity_field:{key}"] = ef_path
+                    entity_field_ok = True
+                except Exception as exc:  # noqa: BLE001
+                    print(f"  Skipping entity+field FE cache for {key}: {exc}")
+
+            has_entity_last_author = all(
+                col in subset.columns for col in ("entity_name", "last_author_id")
+            )
+            if (
+                has_entity_last_author
+                and len(subset) >= 50
+                and n_with >= 5
+                and n_without >= 5
+                and n_entities >= 2
+                and n_authors >= 2
+            ):
+                try:
+                    ela_df = fit_coefficient_forest(
+                        subset, fe_col=["entity_name", "last_author_id"]
+                    )
+                    ela_path = coef_path_for_categories(
+                        combo, out_dir=out_dir, fe="entity_last_author"
+                    )
+                    ela_df.to_csv(ela_path, index=False)
+                    paths[f"coefficients_entity_last_author:{key}"] = ela_path
+                    entity_last_author_ok = True
+                except Exception as exc:  # noqa: BLE001
+                    print(f"  Skipping entity+last-author FE cache for {key}: {exc}")
+
         combo_meta.append(
             {
                 "categories": list(combo),
@@ -493,6 +602,8 @@ def save_dashboard_cache(
                 "has_coefficients": coef_ok,
                 "has_field_coefficients": field_ok,
                 "has_last_author_coefficients": last_author_ok,
+                "has_entity_field_coefficients": entity_field_ok,
+                "has_entity_last_author_coefficients": entity_last_author_ok,
             }
         )
         flags = []
@@ -502,6 +613,10 @@ def save_dashboard_cache(
             flags.append("field FE")
         if last_author_ok:
             flags.append("last-author FE")
+        if entity_field_ok:
+            flags.append("entity+field FE")
+        if entity_last_author_ok:
+            flags.append("entity+last-author FE")
         print(
             f"  Cached combo [{key}]: {len(subset):,} papers"
             + (f" + {', '.join(flags)}" if flags else "")
@@ -550,6 +665,11 @@ def load_paper_df_from_cache(
             paper_df[col] = ""
         else:
             paper_df[col] = paper_df[col].fillna("").astype(str)
+    for col in ("pr_journal", "pr_institution", "pr_publisher"):
+        if col not in paper_df.columns:
+            paper_df[col] = pd.NA
+        else:
+            paper_df[col] = paper_df[col].astype("string")
     if sample_size is not None and sample_size > 0:
         paper_df = _sample_up_to_n(paper_df, n=sample_size, group_col="has_pr")
     return paper_df
@@ -657,32 +777,40 @@ def overview_metric_stats(
 def fit_coefficient_forest(
     paper_df: pd.DataFrame,
     *,
-    fe_col: str = "entity_name",
+    fe_col: str | list[str] = "entity_name",
 ) -> pd.DataFrame:
-    """OLS has_pr coefficients with fixed effects on ``fe_col``.
+    """OLS has_pr coefficients with one or more fixed-effect dimensions.
 
     Default ``fe_col='entity_name'`` matches 07_create_graphs.
-    Use ``fe_col='last_author_id'`` for last-author fixed effects.
+    Pass a list, e.g. ``['entity_name', 'field_id']``, for multi-way FE.
     """
     import pyfixest as pf
 
-    data = paper_df.copy()
-    if fe_col not in data.columns:
-        raise KeyError(f"Missing FE column: {fe_col}")
+    fe_cols = [fe_col] if isinstance(fe_col, str) else list(fe_col)
+    if not fe_cols:
+        raise ValueError("Need at least one fixed-effects column")
 
-    # Drop empty / missing FE keys so pyfixest does not treat blanks as one group.
-    fe_vals = data[fe_col].astype(str).str.strip()
-    data = data.loc[fe_vals.ne("") & fe_vals.ne("nan") & data[fe_col].notna()].copy()
-    data[fe_col] = data[fe_col].astype(str)
-    if data[fe_col].nunique() < 2:
-        raise ValueError(f"Need ≥2 levels of {fe_col} for fixed effects")
+    data = paper_df.copy()
+    for col in fe_cols:
+        if col not in data.columns:
+            raise KeyError(f"Missing FE column: {col}")
+
+    for col in fe_cols:
+        fe_vals = data[col].astype(str).str.strip()
+        data = data.loc[fe_vals.ne("") & fe_vals.ne("nan") & data[col].notna()].copy()
+        data[col] = data[col].astype(str)
+        if data[col].nunique() < 2:
+            raise ValueError(f"Need ≥2 levels of {col} for fixed effects")
+
+    fe_rhs = " + ".join(fe_cols)
+    cluster_col = fe_cols[0]
 
     rows = []
     for metric, label in zip(METRICS, METRIC_LABELS):
         model = pf.feols(
-            f"{metric} ~ has_pr | {fe_col}",
+            f"{metric} ~ has_pr | {fe_rhs}",
             data=data,
-            vcov={"CRV1": fe_col},
+            vcov={"CRV1": cluster_col},
         )
         coef = float(model.coef().loc["has_pr"])
         se = float(model.se().loc["has_pr"])
@@ -693,7 +821,7 @@ def fit_coefficient_forest(
                 "se": se,
                 "ci_lo": coef - 1.96 * se,
                 "ci_hi": coef + 1.96 * se,
-                "fe_col": fe_col,
+                "fe_col": fe_rhs,
             }
         )
 

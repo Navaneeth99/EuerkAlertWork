@@ -5,6 +5,19 @@ Builds paper_df from DuckDB + Altmetric once, then writes:
   - Processed/dashboard/paper_df.parquet
   - overview + FE coefficient CSVs for every non-empty category combination
 
+Paper rows keep OpenAlex ``entity_name`` / ``category`` from ``doi_list``.
+Matched press releases also contribute nullable PR-scope columns from
+``pr_paper_matched``:
+
+  - pr_journal
+  - pr_institution
+  - pr_publisher
+
+Requires a current matching pipeline run so ``pr_paper_matched`` has the
+triple entity columns:
+
+    python code/06_matching_pipeline.py
+
 Usage:
     python code/08_export_dashboard_data.py
     python code/08_export_dashboard_data.py --sample-size 50000
@@ -32,7 +45,10 @@ from utils.impact_analysis import (  # noqa: E402
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Export dashboard parquet cache under Processed/dashboard/."
+        description=(
+            "Export dashboard parquet cache under Processed/dashboard/ "
+            "(includes pr_journal / pr_institution / pr_publisher)."
+        )
     )
     parser.add_argument("--duckdb", type=Path, default=DEFAULT_DUCKDB)
     parser.add_argument("--altmet-csv", type=Path, default=DEFAULT_ALTMET_CSV)
@@ -56,6 +72,28 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def _print_pr_entity_fill(paper_df) -> None:
+    with_pr = paper_df.loc[paper_df["has_pr"]]
+    n = len(with_pr)
+    if n == 0:
+        print("  PR entity fill: no papers with has_pr=True")
+        return
+
+    def filled(col: str) -> int:
+        s = with_pr[col]
+        mask = s.notna() & s.astype(str).str.strip().ne("") & s.astype(str).str.lower().ne(
+            "nan"
+        )
+        return int(mask.sum())
+
+    print(
+        f"  PR entity fill (among {n:,} papers with PR): "
+        f"journal={filled('pr_journal'):,}  "
+        f"institution={filled('pr_institution'):,}  "
+        f"publisher={filled('pr_publisher'):,}"
+    )
+
+
 def main() -> None:
     args = parse_args()
     sample_size = None if args.sample_size == 0 else args.sample_size
@@ -75,6 +113,7 @@ def main() -> None:
         f"Loaded {len(paper_df):,} papers "
         f"({int(paper_df['has_pr'].sum()):,} with PR)."
     )
+    _print_pr_entity_fill(paper_df)
 
     n_altmet_source = count_csv_data_rows(args.altmet_csv)
     print(f"Writing cache to {args.out_dir.resolve()} …")

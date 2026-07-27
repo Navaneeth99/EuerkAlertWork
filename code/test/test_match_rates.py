@@ -1,10 +1,11 @@
-"""Per-entity DOI match rates for organisations/journals.
+"""Per-entity DOI match rates for organisations/journals/publishers.
 
-Reports what share of press releases for each entity_name were matched to a DOI
-(via DOI, exact title, or embedding), using ``pr_paper_matched``.
+Reports what share of press releases for each journal / institution / publisher
+were matched to a DOI (via DOI, exact title, fuzzy, or embedding), using
+``pr_paper_matched`` with the three nullable entity columns unpivoted.
 
-Also reports embedding-only rates on ``embedding_title_match`` (same query as
-analysis.ipynb).
+Also reports embedding-only rates on ``embedding_title_match`` and column fill
+rates.
 
 Requires the matching pipeline (and preferably embedding match) to have run:
   python code/06_matching_pipeline.py
@@ -29,6 +30,21 @@ from utils.eurekalert_duckdb import connect  # noqa: E402
 ROOT = CODE_DIR.parent
 DEFAULT_OUT = ROOT / "Processed" / "pr_doi_joined" / "match_rates_by_entity.csv"
 
+# Unpivot journal / institution / publisher into long form.
+ENTITY_UNPIVOT = """
+SELECT pr_id, journal AS entity_name, 'journal' AS entity_category, is_matched
+FROM pr_paper_matched
+WHERE journal IS NOT NULL AND trim(journal) != ''
+UNION ALL
+SELECT pr_id, institution AS entity_name, 'institution' AS entity_category, is_matched
+FROM pr_paper_matched
+WHERE institution IS NOT NULL AND trim(institution) != ''
+UNION ALL
+SELECT pr_id, publisher AS entity_name, 'publisher' AS entity_category, is_matched
+FROM pr_paper_matched
+WHERE publisher IS NOT NULL AND trim(publisher) != ''
+"""
+
 
 def _require(con, name: str) -> None:
     n = con.execute(
@@ -49,16 +65,35 @@ def _require(con, name: str) -> None:
 def match_rates_overall(con):
     """% of scoped PRs per entity with a DOI match (any method)."""
     return con.sql(
-        """
+        f"""
         SELECT
             entity_name,
+            entity_category,
             count(*) AS n_prs,
             sum(is_matched) AS n_matched,
             sum(is_matched) * 1.0 / count(*) AS match_percentage
+        FROM ({ENTITY_UNPIVOT}) e
+        GROUP BY entity_name, entity_category
+        ORDER BY n_prs DESC, entity_category, entity_name
+        """
+    ).df()
+
+
+def column_fill_rates(con):
+    """How often each entity column is non-null on pr_paper_matched."""
+    return con.sql(
+        """
+        SELECT
+            count(*) AS n_prs,
+            sum(CASE WHEN journal IS NOT NULL AND trim(journal) != '' THEN 1 ELSE 0 END)
+                AS n_with_journal,
+            sum(CASE WHEN institution IS NOT NULL AND trim(institution) != '' THEN 1 ELSE 0 END)
+                AS n_with_institution,
+            sum(CASE WHEN publisher IS NOT NULL AND trim(publisher) != '' THEN 1 ELSE 0 END)
+                AS n_with_publisher,
+            sum(is_matched) AS n_matched,
+            sum(is_matched) * 1.0 / count(*) AS paper_match_percentage
         FROM pr_paper_matched
-        WHERE entity_name IS NOT NULL AND trim(entity_name) != ''
-        GROUP BY entity_name
-        ORDER BY n_prs DESC, entity_name
         """
     ).df()
 
@@ -66,17 +101,18 @@ def match_rates_overall(con):
 def match_rates_by_method(con):
     """Per-entity counts by match_method (doi / exact_title / embedding / scope)."""
     return con.sql(
-        """
+        f"""
         SELECT
-            entity_name,
-            match_method,
-            confidence_tier,
+            e.entity_name,
+            e.entity_category,
+            m.match_method,
+            m.confidence_tier,
             count(*) AS n_prs,
-            sum(is_matched) AS n_matched
-        FROM pr_paper_matched
-        WHERE entity_name IS NOT NULL AND trim(entity_name) != ''
-        GROUP BY 1, 2, 3
-        ORDER BY entity_name, n_prs DESC
+            sum(e.is_matched) AS n_matched
+        FROM ({ENTITY_UNPIVOT}) e
+        JOIN pr_paper_matched m ON e.pr_id = m.pr_id
+        GROUP BY 1, 2, 3, 4
+        ORDER BY e.entity_name, e.entity_category, n_prs DESC
         """
     ).df()
 
@@ -104,15 +140,19 @@ def main(min_sim: float = MIN_SIM, out: Path | None = DEFAULT_OUT) -> None:
 
     overall = match_rates_overall(con)
     by_method = match_rates_by_method(con)
+    fill = column_fill_rates(con)
 
-    print("=== Overall DOI match rate by entity (pr_paper_matched) ===")
+    print("=== Column fill rates (pr_paper_matched) ===")
+    print(fill.to_string(index=False))
+    print()
+    print("=== Overall DOI match rate by entity (unpivoted) ===")
     print(overall.to_string(index=False))
     print()
     print(
-        f"Entities: {len(overall):,}  |  "
-        f"PRs: {int(overall['n_prs'].sum()):,}  |  "
-        f"Matched: {int(overall['n_matched'].sum()):,}  |  "
-        f"Overall rate: {overall['n_matched'].sum() / overall['n_prs'].sum():.1%}"
+        f"Entity rows: {len(overall):,}  |  "
+        f"PR-entity links: {int(overall['n_prs'].sum()):,}  |  "
+        f"Matched links: {int(overall['n_matched'].sum()):,}  |  "
+        f"Link match rate: {overall['n_matched'].sum() / overall['n_prs'].sum():.1%}"
     )
 
     has_embedding = (
@@ -141,6 +181,7 @@ def main(min_sim: float = MIN_SIM, out: Path | None = DEFAULT_OUT) -> None:
         out = Path(out)
         out.parent.mkdir(parents=True, exist_ok=True)
         overall.to_csv(out, index=False)
+        fill.to_csv(out.with_name("match_rates_column_fill.csv"), index=False)
         by_method.to_csv(out.with_name("match_rates_by_entity_method.csv"), index=False)
         if embedding is not None:
             embedding.to_csv(

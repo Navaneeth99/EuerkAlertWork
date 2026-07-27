@@ -11,9 +11,9 @@ MIN_SIM = 0.7  # optional quality cutoff; default matching keeps every PR's top 
 
 # Align scope entity_name with DOIList when names diverge.
 ENTITY_NAME_ALIASES_SQL = """
-CASE trim(s.entity_name)
+CASE trim(entity_name_raw)
   WHEN 'Chinese Academy of Sciences' THEN 'Chinese Academy of Sciences Headquarters'
-  ELSE s.entity_name
+  ELSE trim(entity_name_raw)
 END
 """
 
@@ -39,18 +39,38 @@ def _encode(model, texts, batch_size=256):
 
 
 def _unmatched_prs(con):
+    """Unmatched PRs, one row per filled journal/institution/publisher column."""
     con.execute(f"""
         CREATE OR REPLACE TABLE unmatched_pr_scope AS
+        WITH base AS (
+            SELECT
+                CAST(s.pr_id AS VARCHAR) AS pr_id,
+                s.pub_date,
+                s.journal,
+                s.institution,
+                s.publisher,
+                {PR_TEXT} AS pr_text
+            FROM pr_paper_matched s
+            JOIN pr_base pr ON CAST(pr."PR ID" AS VARCHAR) = CAST(s.pr_id AS VARCHAR)
+            WHERE s.is_matched = 0
+              AND {PR_TEXT} IS NOT NULL
+        ),
+        long AS (
+            SELECT pr_id, journal AS entity_name_raw, pub_date, pr_text
+            FROM base WHERE journal IS NOT NULL AND trim(journal) != ''
+            UNION ALL
+            SELECT pr_id, institution AS entity_name_raw, pub_date, pr_text
+            FROM base WHERE institution IS NOT NULL AND trim(institution) != ''
+            UNION ALL
+            SELECT pr_id, publisher AS entity_name_raw, pub_date, pr_text
+            FROM base WHERE publisher IS NOT NULL AND trim(publisher) != ''
+        )
         SELECT
-            s.pr_id,
+            pr_id,
             {ENTITY_NAME_ALIASES_SQL} AS entity_name,
-            s.pub_date,
-            {PR_TEXT} AS pr_text
-        FROM pr_paper_matched s
-        JOIN pr_base pr ON s.pr_id = pr."PR ID"
-        WHERE s.is_matched = 0
-          AND s.entity_name IS NOT NULL
-          AND {PR_TEXT} IS NOT NULL
+            pub_date,
+            pr_text
+        FROM long
     """)
 
 
@@ -93,8 +113,10 @@ def _attach_embeddings(df, id_col, text_col, path, model, rebuild):
 def run_embedding_match(con, min_sim=None, max_days=348, rebuild=False):
     """Match each unmatched scoped PR to its best same-entity DOI title.
 
-    By default keeps the top DOI for every PR with a date-valid candidate
-    (no similarity floor). Pass ``min_sim`` (e.g. 0.7) to drop weaker scores.
+    By default keeps the top DOI for every PR-entity row with a date-valid
+    candidate (no similarity floor). Pass ``min_sim`` (e.g. 0.7) to drop weaker
+    scores. A PR may appear under multiple entities; ``match_embedding`` later
+    keeps the highest-similarity hit per PR.
     """
     from sentence_transformers import SentenceTransformer
 
@@ -125,7 +147,7 @@ def run_embedding_match(con, min_sim=None, max_days=348, rebuild=False):
     thresh_s = f"min_sim={min_sim}" if min_sim is not None else "top-1 (no min_sim)"
     print(
         f"Embedding similarity match: {n_entities:,} entities, "
-        f"{len(pr_df):,} PRs, {len(doi_df):,} DOIs ({thresh_s})",
+        f"{len(pr_df):,} PR-entity rows, {len(doi_df):,} DOIs ({thresh_s})",
         flush=True,
     )
 
