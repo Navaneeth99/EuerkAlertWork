@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from html import escape
 from typing import Any
 
 import numpy as np
@@ -85,6 +86,71 @@ def _fmt_int(n: int) -> str:
     return f"{n:,}"
 
 
+def _fmt_metric_display(v: float) -> str:
+    n = float(v)
+    if not np.isfinite(n):
+        return "-"
+    if abs(n) >= 1000:
+        return f"{round(n):,}"
+    if abs(n) >= 100:
+        return f"{n:.0f}"
+    if abs(n) >= 10:
+        return f"{n:.1f}"
+    return f"{n:.2f}"
+
+
+def _bar_widths(wo: float, w: float) -> tuple[str, str]:
+    wo_n = float(wo or 0.0)
+    w_n = float(w or 0.0)
+    row_max = max(w_n, wo_n, 1e-9) * 1.08
+    return f"{(w_n / row_max) * 100:.4f}%", f"{(wo_n / row_max) * 100:.4f}%"
+
+
+def render_region_bars_html(region_comparison: dict[str, Any]) -> str:
+    """Static HTML for Figure 4.2 so hosted DCLogic does not need JS payload data."""
+    outcomes = region_comparison.get("outcomes") or []
+    if not outcomes:
+        return (
+            '<div style="font-size:13px; color:oklch(0.52 0.02 255);">'
+            "Regional comparison data is unavailable."
+            "</div>"
+        )
+    blocks: list[str] = []
+    for outcome in outcomes:
+        label = escape(str(outcome.get("label") or ""))
+        china = outcome.get("china") or {}
+        japan = outcome.get("japan") or {}
+        china_wo = float(china.get("wo") or 0.0)
+        china_w = float(china.get("w") or 0.0)
+        japan_wo = float(japan.get("wo") or 0.0)
+        japan_w = float(japan.get("w") or 0.0)
+        china_ww, china_wow = _bar_widths(china_wo, china_w)
+        japan_ww, japan_wow = _bar_widths(japan_wo, japan_w)
+        blocks.append(
+            '<div style="display:grid; grid-template-columns:130px 1fr 1fr; gap:16px; align-items:center;">'
+            f'<div style="font-weight:700; font-size:13.5px;">{label}</div>'
+            "<div>"
+            '<div style="font-size:11px; font-weight:700; color:#C41E3A; margin-bottom:6px;">China</div>'
+            '<div style="display:flex; flex-direction:column; gap:2px;">'
+            f'<div style="height:7px; width:{china_ww}; background:#C41E3A; border-radius:0 2px 2px 0;"></div>'
+            f'<div style="height:7px; width:{china_wow}; background:#E8B4B8; border-radius:0 2px 2px 0;"></div>'
+            "</div>"
+            '<div style="font-size:11px; color:oklch(0.5 0.02 255); margin-top:4px;">'
+            f"with {_fmt_metric_display(china_w)} · without {_fmt_metric_display(china_wo)}"
+            "</div></div>"
+            "<div>"
+            '<div style="font-size:11px; font-weight:700; color:#1F4E79; margin-bottom:6px;">Japan</div>'
+            '<div style="display:flex; flex-direction:column; gap:2px;">'
+            f'<div style="height:7px; width:{japan_ww}; background:#1F4E79; border-radius:0 2px 2px 0;"></div>'
+            f'<div style="height:7px; width:{japan_wow}; background:#AEBFCE; border-radius:0 2px 2px 0;"></div>'
+            "</div>"
+            '<div style="font-size:11px; color:oklch(0.5 0.02 255); margin-top:4px;">'
+            f"with {_fmt_metric_display(japan_w)} · without {_fmt_metric_display(japan_wo)}"
+            "</div></div></div>"
+        )
+    return "\n".join(blocks)
+
+
 def _safe_mean(s: pd.Series) -> float:
     s = pd.to_numeric(s, errors="coerce").dropna()
     return float(s.mean()) if len(s) else 0.0
@@ -116,7 +182,12 @@ def _coef_lookup(coef_df: pd.DataFrame | None) -> dict[str, tuple[float, float]]
 def build_region_comparison(paper_df: pd.DataFrame) -> dict[str, Any]:
     """Descriptive summary for China vs Japan regional comparison."""
     df = paper_df.copy()
-    df["region"] = df["entity_name"].map(assign_region)
+    names = df["entity_name"].astype(str).str.strip()
+    df["region"] = np.where(
+        names.isin(JAPAN_INSTITUTIONS),
+        "Japan",
+        np.where(names.isin(OTHER_ENTITIES), "Other", "China"),
+    )
     china = df.loc[df["region"] == "China"]
     japan = df.loc[df["region"] == "Japan"]
 
@@ -185,7 +256,12 @@ def build_report_payload(
     n_without = n_total - n_with
     pct = (100.0 * n_with / n_total) if n_total else 0.0
 
-    df["region"] = df["entity_name"].map(assign_region)
+    names = df["entity_name"].astype(str).str.strip()
+    df["region"] = np.where(
+        names.isin(JAPAN_INSTITUTIONS),
+        "Japan",
+        np.where(names.isin(OTHER_ENTITIES), "Other", "China"),
+    )
     n_china = int((df["region"] == "China").sum())
     n_japan = int((df["region"] == "Japan").sum())
     n_china_with = int(df.loc[df["region"] == "China", "has_pr"].sum())
@@ -331,6 +407,14 @@ def build_report_payload(
         else 0
     )
 
+    region_comparison = build_region_comparison(df)
+    region_blurb = (
+        "Regional comparison across all in-scope Chinese entities "
+        "(institutions, journals, publishers) versus Japanese universities only. "
+        f"China: {_fmt_int(n_china)} papers ({_fmt_int(n_china_with)} with PR). "
+        f"Japan: {_fmt_int(n_japan)} papers ({_fmt_int(n_japan_with)} with PR)."
+    )
+
     header = {
         "HDR_N_PAPERS": _fmt_int(n_total),
         "HDR_N_WITH": _fmt_int(n_with),
@@ -343,11 +427,15 @@ def build_report_payload(
         "HDR_N_JAPAN": _fmt_int(n_japan),
         "HDR_N_CHINA_WITH": _fmt_int(n_china_with),
         "HDR_N_JAPAN_WITH": _fmt_int(n_japan_with),
+        "HDR_REGION_BLURB": region_blurb,
     }
 
-    region_comparison = build_region_comparison(df)
-
     return {
+        "regionComparison": region_comparison,
+        "n_china": n_china,
+        "n_japan": n_japan,
+        "n_china_with_pr": n_china_with,
+        "n_japan_with_pr": n_japan_with,
         "metrics": metrics,
         "entities": entities,
         "entityMeans": entity_means,
@@ -384,15 +472,10 @@ def build_report_payload(
         "n_total": n_total,
         "n_with": n_with,
         "n_without": n_without,
-        "n_china": n_china,
-        "n_japan": n_japan,
-        "n_china_with_pr": n_china_with,
-        "n_japan_with_pr": n_japan_with,
         "n_institution": int(len(inst_df)),
         "n_univ_jour": int(len(uj_df)),
         "has_univ_jour_fe": has_univ_jour,
         "has_univ_jour_last_author_fe": has_univ_jour_last_author,
-        "regionComparison": region_comparison,
     }
 
 
@@ -405,8 +488,10 @@ def render_report_html(
     import json
 
     html = template_html.replace("/*__DCLOGIC__*/", dclogic_js)
-    data_json = json.dumps(payload, allow_nan=False)
+    data_json = json.dumps(payload, allow_nan=False).replace("<", "\\u003c")
     html = html.replace("/*__REPORT_DATA__*/null", data_json)
+    bars_html = render_region_bars_html(payload.get("regionComparison") or {})
+    html = html.replace("__REGION_BARS_HTML__", bars_html)
     for key, value in payload.get("header", {}).items():
         html = html.replace(f"__{key}__", str(value))
     return html

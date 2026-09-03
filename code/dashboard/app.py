@@ -31,6 +31,7 @@ DEFAULT_DASHBOARD_DIR = ROOT / "Processed" / "dashboard"
 DEFAULT_PAPER_PARQUET = DEFAULT_DASHBOARD_DIR / "paper_df.parquet"
 REPORT_TEMPLATE = Path(__file__).resolve().parent / "report_template.html"
 DCLOGIC_JS = Path(__file__).resolve().parent / "assets" / "dclogic.js"
+REPORT_DATA_PY = Path(__file__).resolve().parent / "report_data.py"
 
 from dashboard.report_data import (  # noqa: E402
     build_report_payload,
@@ -125,8 +126,9 @@ def cached_render_report(
     template_mtime: float,
     dclogic_mtime: float,
     coef_mtime_key: str,
+    report_data_mtime: float,
 ) -> str:
-    del parquet_mtime, coef_mtime_key
+    del parquet_mtime, coef_mtime_key, report_data_mtime
     paper_df = cached_load_paper_df(
         str(DEFAULT_PAPER_PARQUET),
         DEFAULT_PAPER_PARQUET.stat().st_mtime,
@@ -208,6 +210,7 @@ def main() -> None:
         REPORT_TEMPLATE.stat().st_mtime,
         DCLOGIC_JS.stat().st_mtime,
         _dashboard_coef_mtime(DEFAULT_DASHBOARD_DIR),
+        REPORT_DATA_PY.stat().st_mtime if REPORT_DATA_PY.exists() else 0.0,
     )
     components.html(html, height=900, scrolling=True)
 

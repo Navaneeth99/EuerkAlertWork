@@ -61,6 +61,7 @@ nav .report-nav-link:focus-visible::before {
   outline-offset: 2px;
 }
 </style>
+<script>window.__resources = window.__resources || {};</script>
 </head>
 <body>
 
@@ -473,36 +474,11 @@ nav .report-nav-link:focus-visible::before {
       </div>
 
       <div style="font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:oklch(0.45 0.02 255); margin:40px 0 14px;">Figure 4.2 - China vs Japan</div>
-      <p style="margin:0 0 16px; font-size:14px; color:oklch(0.45 0.02 255); max-width:960px; text-wrap:pretty;">{{ regionBlurb }}</p>
+      <p style="margin:0 0 16px; font-size:14px; color:oklch(0.45 0.02 255); max-width:960px; text-wrap:pretty;">__HDR_REGION_BLURB__</p>
       <div style="background:#fff; border:1px solid oklch(0.89 0.008 255); border-radius:8px; padding:24px 28px; margin-bottom:20px;">
         <div style="font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:#1F4E79; margin-bottom:16px;">Descriptive means by region</div>
         <div style="display:flex; flex-direction:column; gap:16px;">
-          <sc-if value="{{ regionOutcomeRows.length }}" hint-placeholder-val="{{ 1 }}">
-            <sc-for list="{{ regionOutcomeRows }}" as="r" hint-placeholder-count="7">
-            <div style="display:grid; grid-template-columns:130px 1fr 1fr; gap:16px; align-items:center;">
-              <div style="font-weight:700; font-size:13.5px;">{{ r.label }}</div>
-              <div>
-                <div style="font-size:11px; font-weight:700; color:#C41E3A; margin-bottom:6px;">China</div>
-                <div style="display:flex; flex-direction:column; gap:2px;">
-                  <div style="height:7px; width:{{ r.china.wW }}; background:#C41E3A; border-radius:0 2px 2px 0;"></div>
-                  <div style="height:7px; width:{{ r.china.woW }}; background:#E8B4B8; border-radius:0 2px 2px 0;"></div>
-                </div>
-                <div style="font-size:11px; color:oklch(0.5 0.02 255); margin-top:4px;">with {{ r.china.wVal }} · without {{ r.china.woVal }}</div>
-              </div>
-              <div>
-                <div style="font-size:11px; font-weight:700; color:#1F4E79; margin-bottom:6px;">Japan</div>
-                <div style="display:flex; flex-direction:column; gap:2px;">
-                  <div style="height:7px; width:{{ r.japan.wW }}; background:#1F4E79; border-radius:0 2px 2px 0;"></div>
-                  <div style="height:7px; width:{{ r.japan.woW }}; background:#AEBFCE; border-radius:0 2px 2px 0;"></div>
-                </div>
-                <div style="font-size:11px; color:oklch(0.5 0.02 255); margin-top:4px;">with {{ r.japan.wVal }} · without {{ r.japan.woVal }}</div>
-              </div>
-            </div>
-          </sc-for>
-          </sc-if>
-          <sc-if value="{{ !regionOutcomeRows.length }}" hint-placeholder-val="{{ true }}">
-            <div style="font-size:13px; color:oklch(0.52 0.02 255);">Regional comparison data is loading or unavailable. Refresh the page after the dashboard cache finishes building.</div>
-          </sc-if>
+          __REGION_BARS_HTML__
         </div>
         <div style="display:flex; gap:20px; margin-top:16px; padding-top:14px; border-top:1px solid oklch(0.93 0.006 255); font-size:12px; color:oklch(0.52 0.02 255);">
           <span style="display:flex; align-items:center; gap:6px;"><span style="width:12px; height:7px; background:#C41E3A;"></span> China with PR</span>
@@ -551,10 +527,8 @@ nav .report-nav-link:focus-visible::before {
 </x-dc>
 
 <script>
-window.__REPORT_DATA__ = /*__REPORT_DATA__*/null;
-/* Prevent DCLogic from re-fetching the page template inside Streamlit iframes,
-   which can drop server-side header token replacements. */
 window.__resources = window.__resources || {};
+window.__REPORT_DATA__ = /*__REPORT_DATA__*/null;
 
 /* DCLogic injects html,body,#dc-root{height:100%} which traps content inside
    the Streamlit iframe and breaks section scrolling / nav. Undo it. */
@@ -840,30 +814,6 @@ class Component extends DCLogic {
       };
     });
 
-    const regionComp = this.data.regionComparison || {};
-    const regionMeta = regionComp.meta || {};
-    const fmtN = (n) => (Number(n) || 0).toLocaleString("en-US");
-    const nChina = this.data.n_china ?? regionMeta.nChina ?? 0;
-    const nJapan = this.data.n_japan ?? regionMeta.nJapan ?? 0;
-    const nChinaWith = this.data.n_china_with_pr ?? regionMeta.nChinaWithPr ?? 0;
-    const nJapanWith = this.data.n_japan_with_pr ?? regionMeta.nJapanWithPr ?? 0;
-    const regionBlurb =
-      "Regional comparison across all in-scope Chinese entities (institutions, journals, publishers) " +
-      "versus Japanese universities only. China: " + fmtN(nChina) + " papers (" + fmtN(nChinaWith) +
-      " with PR). Japan: " + fmtN(nJapan) + " papers (" + fmtN(nJapanWith) + " with PR).";
-    const regionOutcomes = regionComp.outcomes || [];
-    const regionOutcomeRows = regionOutcomes.map((o) => {
-      const china = o.china || {};
-      const japan = o.japan || {};
-      const chinaRow = this.meanBarRow("China", china.wo, china.w);
-      const japanRow = this.meanBarRow("Japan", japan.wo, japan.w);
-      return {
-        label: o.label,
-        china: chinaRow,
-        japan: japanRow,
-      };
-    });
-
     return {
       showTakeaways, outcomeCards,
       scaleRows, specLadder, forestRows,
@@ -871,8 +821,7 @@ class Component extends DCLogic {
       entityOptions, selectedEntity: selE, entityRows, entityMeta,
       onEntityChange: (ev) => this.setState({ entity: ev.target.value }),
       hetPanels,
-      regionOutcomeRows,
-      regionBlurb,
+    };
     };
   }
 }
