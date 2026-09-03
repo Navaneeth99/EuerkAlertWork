@@ -1,8 +1,8 @@
 {
-  "created_at_utc": "2026-07-26T21:53:44.582937+00:00",
+  "created_at_utc": "2026-09-02T20:50:06.175425+00:00",
   "n_papers": 1229338,
   "n_with_pr": 18461,
-  "n_altmet_source": 1246222,
+  "n_altmet_source": null,
   "n_entities": 43,
   "n_fields": 26,
   "year_min": 2015,
@@ -49,7 +49,9 @@
       "n_with_pr": 16702,
       "has_coefficients": true,
       "has_field_coefficients": true,
-      "has_last_author_coefficients": true
+      "has_last_author_coefficients": true,
+      "has_entity_field_coefficients": true,
+      "has_entity_last_author_coefficients": true
     },
     {
       "categories": [
@@ -60,7 +62,9 @@
       "n_with_pr": 970,
       "has_coefficients": true,
       "has_field_coefficients": true,
-      "has_last_author_coefficients": true
+      "has_last_author_coefficients": true,
+      "has_entity_field_coefficients": true,
+      "has_entity_last_author_coefficients": true
     },
     {
       "categories": [
@@ -71,7 +75,9 @@
       "n_with_pr": 789,
       "has_coefficients": true,
       "has_field_coefficients": true,
-      "has_last_author_coefficients": true
+      "has_last_author_coefficients": true,
+      "has_entity_field_coefficients": true,
+      "has_entity_last_author_coefficients": true
     },
     {
       "categories": [
@@ -83,7 +89,9 @@
       "n_with_pr": 17672,
       "has_coefficients": true,
       "has_field_coefficients": true,
-      "has_last_author_coefficients": true
+      "has_last_author_coefficients": true,
+      "has_entity_field_coefficients": true,
+      "has_entity_last_author_coefficients": true
     },
     {
       "categories": [
@@ -95,7 +103,9 @@
       "n_with_pr": 17491,
       "has_coefficients": true,
       "has_field_coefficients": true,
-      "has_last_author_coefficients": true
+      "has_last_author_coefficients": true,
+      "has_entity_field_coefficients": true,
+      "has_entity_last_author_coefficients": true
     },
     {
       "categories": [
@@ -107,7 +117,9 @@
       "n_with_pr": 1759,
       "has_coefficients": true,
       "has_field_coefficients": true,
-      "has_last_author_coefficients": true
+      "has_last_author_coefficients": true,
+      "has_entity_field_coefficients": true,
+      "has_entity_last_author_coefficients": true
     },
     {
       "categories": [
@@ -120,7 +132,9 @@
       "n_with_pr": 18461,
       "has_coefficients": true,
       "has_field_coefficients": true,
-      "has_last_author_coefficients": true
+      "has_last_author_coefficients": true,
+      "has_entity_field_coefficients": true,
+      "has_entity_last_author_coefficients": true
     }
   ]
 }

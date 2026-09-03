@@ -219,71 +219,6 @@ nav .report-nav-link:focus-visible::before {
       </div>
       <p style="font-size:13px; color:oklch(0.52 0.02 255); margin:10px 0 0; max-width:860px;"><b>Attention Score</b> is Altmetric’s weighted sum of mention channels - news ×8, blogs ×5, policy/patents/Wikipedia ×3, social ×0.25. Citations are counted separately and are <i>not</i> part of the score.</p>
 
-      <div style="font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:oklch(0.45 0.02 255); margin:40px 0 14px;">Figure 1.2 - Citation counts: linear vs log scale</div>
-      <div style="background:#fff; border:1px solid oklch(0.89 0.008 255); border-radius:8px; padding:24px 28px;">
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:28px;">
-          <div>
-            <div style="font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:#1F4E79; margin-bottom:12px;">Linear axis</div>
-            <div style="position:relative; padding-top:18px;">
-              <div style="position:relative; height:132px;">
-                <div style="display:flex; align-items:flex-end; gap:3px; height:100%;">
-                  <sc-for list="{{ citeHistLinear }}" as="b" hint-placeholder-count="10">
-                    <div style="flex:1; min-width:0; display:flex; flex-direction:column; align-items:stretch; justify-content:flex-end; height:100%;">
-                      <div style="text-align:center; font-size:8.5px; color:oklch(0.55 0.02 255); font-variant-numeric:tabular-nums; margin-bottom:4px; white-space:nowrap; overflow:hidden;">{{ b.countLabel }}</div>
-                      <div style="width:100%; height:{{ b.barH }}; background:#AEBFCE; border-radius:2px 2px 0 0; min-height:2px;"></div>
-                    </div>
-                  </sc-for>
-                </div>
-                <sc-if value="{{ citeHistMedianLinearPos }}" hint-placeholder-val="{{ true }}">
-                  <div style="position:absolute; top:0; bottom:0; left:{{ citeHistMedianLinearPos }}; border-left:2px dashed #1F4E79; transform:translateX(-1px); pointer-events:none; z-index:2;">
-                    <div style="position:absolute; top:-17px; left:4px; font-size:8px; font-weight:700; color:#1F4E79; white-space:nowrap; background:rgba(255,255,255,0.95); padding:0 3px; line-height:1.3;">median · {{ citeHistMedianLabel }}</div>
-                  </div>
-                </sc-if>
-              </div>
-            </div>
-            <div style="display:flex; gap:3px; margin-top:8px;">
-              <sc-for list="{{ citeHistLinear }}" as="b" hint-placeholder-count="10">
-                <div style="flex:1; min-width:0; font-size:9px; color:oklch(0.48 0.02 255); text-align:center; line-height:1.2;">{{ b.range }}</div>
-              </sc-for>
-            </div>
-          </div>
-          <div>
-            <div style="display:flex; align-items:baseline; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
-              <div style="font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:#1F4E79;">Log axis</div>
-              <div style="font-size:11px; font-weight:500; color:oklch(0.52 0.02 255); text-transform:none; letter-spacing:normal; font-variant-numeric:tabular-nums;">log<sub>10</sub>(1 + citations)</div>
-            </div>
-            <div style="position:relative; padding-top:18px;">
-              <div style="position:relative; height:132px;">
-                <div style="display:flex; align-items:flex-end; gap:3px; height:100%;">
-                  <sc-for list="{{ citeHistLog }}" as="b" hint-placeholder-count="11">
-                    <div style="flex:1; min-width:0; display:flex; flex-direction:column; align-items:stretch; justify-content:flex-end; height:100%;">
-                      <div style="text-align:center; font-size:8.5px; color:oklch(0.55 0.02 255); font-variant-numeric:tabular-nums; margin-bottom:4px; white-space:nowrap; overflow:hidden;">{{ b.countLabel }}</div>
-                      <div style="width:100%; height:{{ b.barH }}; background:#1F4E79; border-radius:2px 2px 0 0; min-height:2px;"></div>
-                    </div>
-                  </sc-for>
-                </div>
-                <sc-if value="{{ citeHistMedianLogPos }}" hint-placeholder-val="{{ true }}">
-                  <div style="position:absolute; top:0; bottom:0; left:{{ citeHistMedianLogPos }}; border-left:2px dashed #1F4E79; transform:translateX(-1px); pointer-events:none; z-index:2;">
-                    <div style="position:absolute; top:-17px; left:4px; font-size:8px; font-weight:700; color:#1F4E79; white-space:nowrap; background:rgba(255,255,255,0.95); padding:0 3px; line-height:1.3;">median · {{ citeHistMedianLabel }}</div>
-                  </div>
-                </sc-if>
-              </div>
-            </div>
-            <div style="display:flex; gap:3px; margin-top:8px;">
-              <sc-for list="{{ citeHistLog }}" as="b" hint-placeholder-count="11">
-                <div style="flex:1; min-width:0; font-size:8.5px; color:oklch(0.48 0.02 255); text-align:center; line-height:1.25;">
-                  <div style="font-weight:600; color:#1F4E79;">{{ b.logRange }}</div>
-                  <div style="font-size:8px; color:oklch(0.55 0.02 255); margin-top:2px;">{{ b.citeRange }}</div>
-                </div>
-              </sc-for>
-            </div>
-          </div>
-        </div>
-        <div style="margin-top:18px; padding-top:14px; border-top:1px solid oklch(0.93 0.006 255); font-size:12.5px; color:oklch(0.52 0.02 255);">
-          The <b>linear</b> axis is extremely skewed — most papers fall in the first few bins and the long tail is hard to see. The <b>log</b> axis spreads papers more evenly across bins, so the shape of the distribution is easier to read. Bar height = number of papers in each bin.
-        </div>
-      </div>
-
       <div style="font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:oklch(0.45 0.02 255); margin:40px 0 14px;">Figure 1.3 - A sense of scale (log axis)</div>
       <div style="background:#fff; border:1px solid oklch(0.89 0.008 255); border-radius:8px; padding:24px 28px;">
         <div style="display:flex; flex-direction:column; gap:20px;">
@@ -340,7 +275,7 @@ nav .report-nav-link:focus-visible::before {
         </div>
         <div>
           <div style="font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.12em; color:#1F4E79; margin-bottom:6px;">How</div>
-          <p style="margin:0; font-size:14.5px; text-wrap:pretty;">Start with the raw <code style="font-family:'IBM Plex Mono',monospace; font-size:12.5px; background:oklch(0.95 0.005 255); padding:1px 5px; border-radius:3px;">has_pr</code> gap, then re-estimate with fixed effects. Figure 3.2 walks through university, journal, field, and progressively stricter university+journal FE specifications.</p>
+          <p style="margin:0; font-size:14.5px; text-wrap:pretty;">Start with the raw <code style="font-family:'IBM Plex Mono',monospace; font-size:12.5px; background:oklch(0.95 0.005 255); padding:1px 5px; border-radius:3px;">has_pr</code> gap, then re-estimate with fixed effects. Figure 3.2 walks through university FE and institution+journal FE on the full sample.</p>
         </div>
       </div>
 
@@ -433,7 +368,7 @@ nav .report-nav-link:focus-visible::before {
             </div>
           </sc-for>
         </div>
-        <div style="margin-top:18px; padding-top:14px; border-top:1px solid oklch(0.93 0.006 255); font-size:12.5px; color:oklch(0.52 0.02 255);">Raw/university/journal chips use group means; other chips use baseline + FE premium. {{ specNote }}</div>
+        <div style="margin-top:18px; padding-top:14px; border-top:1px solid oklch(0.93 0.006 255); font-size:12.5px; color:oklch(0.52 0.02 255);">Base and university chips use group means on their samples; institution+journal chips use institution+journal sample means with the FE premium (N={{ univJourSample }}). {{ specNote }}</div>
       </div>
       <div style="margin-top:10px; padding:12px 16px; border:1px dashed oklch(0.85 0.01 255); border-radius:6px; background:oklch(0.99 0.002 255);">
         <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:oklch(0.6 0.02 255); margin-bottom:4px;">Notes</div>
@@ -537,6 +472,41 @@ nav .report-nav-link:focus-visible::before {
         <span>×N = with-PR mean ÷ without-PR mean · bars scaled within each panel</span>
       </div>
 
+      <div style="font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:oklch(0.45 0.02 255); margin:40px 0 14px;">Figure 4.2 - China vs Japan</div>
+      <p style="margin:0 0 16px; font-size:14px; color:oklch(0.45 0.02 255); max-width:960px; text-wrap:pretty;">Regional comparison across all in-scope Chinese entities (institutions, journals, publishers) versus Japanese universities only. China: __HDR_N_CHINA__ papers (__HDR_N_CHINA_WITH__ with PR). Japan: __HDR_N_JAPAN__ papers (__HDR_N_JAPAN_WITH__ with PR).</p>
+      <div style="background:#fff; border:1px solid oklch(0.89 0.008 255); border-radius:8px; padding:24px 28px; margin-bottom:20px;">
+        <div style="font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:#1F4E79; margin-bottom:16px;">Descriptive means by region</div>
+        <div style="display:flex; flex-direction:column; gap:16px;">
+          <sc-for list="{{ regionOutcomeRows }}" as="r" hint-placeholder-count="7">
+            <div style="display:grid; grid-template-columns:130px 1fr 1fr; gap:16px; align-items:center;">
+              <div style="font-weight:700; font-size:13.5px;">{{ r.label }}</div>
+              <div>
+                <div style="font-size:11px; font-weight:700; color:#C41E3A; margin-bottom:6px;">China</div>
+                <div style="display:flex; flex-direction:column; gap:2px;">
+                  <div style="height:7px; width:{{ r.china.wW }}; background:#C41E3A; border-radius:0 2px 2px 0;"></div>
+                  <div style="height:7px; width:{{ r.china.woW }}; background:#E8B4B8; border-radius:0 2px 2px 0;"></div>
+                </div>
+                <div style="font-size:11px; color:oklch(0.5 0.02 255); margin-top:4px;">with {{ r.china.wVal }} · without {{ r.china.woVal }}</div>
+              </div>
+              <div>
+                <div style="font-size:11px; font-weight:700; color:#1F4E79; margin-bottom:6px;">Japan</div>
+                <div style="display:flex; flex-direction:column; gap:2px;">
+                  <div style="height:7px; width:{{ r.japan.wW }}; background:#1F4E79; border-radius:0 2px 2px 0;"></div>
+                  <div style="height:7px; width:{{ r.japan.woW }}; background:#AEBFCE; border-radius:0 2px 2px 0;"></div>
+                </div>
+                <div style="font-size:11px; color:oklch(0.5 0.02 255); margin-top:4px;">with {{ r.japan.wVal }} · without {{ r.japan.woVal }}</div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display:flex; gap:20px; margin-top:16px; padding-top:14px; border-top:1px solid oklch(0.93 0.006 255); font-size:12px; color:oklch(0.52 0.02 255);">
+          <span style="display:flex; align-items:center; gap:6px;"><span style="width:12px; height:7px; background:#C41E3A;"></span> China with PR</span>
+          <span style="display:flex; align-items:center; gap:6px;"><span style="width:12px; height:7px; background:#E8B4B8;"></span> China without PR</span>
+          <span style="display:flex; align-items:center; gap:6px;"><span style="width:12px; height:7px; background:#1F4E79;"></span> Japan with PR</span>
+          <span style="display:flex; align-items:center; gap:6px;"><span style="width:12px; height:7px; background:#AEBFCE;"></span> Japan without PR</span>
+        </div>
+      </div>
+
       <sc-if value="{{ showTakeaways }}" hint-placeholder-val="{{ true }}">
         <!-- <div style="margin-top:32px; background:#1F4E79; color:#fff; border-radius:8px; padding:18px 24px; font-size:15px; display:flex; gap:14px; align-items:baseline;">
           <span style="font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.12em; opacity:.75; white-space:nowrap;">Takeaway</span>
@@ -624,7 +594,7 @@ window.__REPORT_DATA__ = /*__REPORT_DATA__*/null;
 })();
 </script>
 <script>/*__DCLOGIC__*/</script>
-<script type="text/x-dc" data-dc-script="" data-props="{&quot;showTakeaways&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true},&quot;defaultSpec&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;univ_jour&quot;,&quot;options&quot;:[&quot;raw&quot;,&quot;university&quot;,&quot;journal&quot;,&quot;field&quot;,&quot;last_author&quot;,&quot;univ_jour&quot;,&quot;univ_jour_field&quot;,&quot;univ_jour_last_author&quot;]},&quot;entitiesPerPanel&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:8,&quot;min&quot;:4,&quot;max&quot;:12}}">
+<script type="text/x-dc" data-dc-script="" data-props="{&quot;showTakeaways&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true},&quot;defaultSpec&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;univ_jour&quot;,&quot;options&quot;:[&quot;raw&quot;,&quot;university&quot;,&quot;univ_jour&quot;,&quot;univ_jour_last_author&quot;]},&quot;entitiesPerPanel&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:8,&quot;min&quot;:4,&quot;max&quot;:12}}">
 class Component extends DCLogic {
   state = { spec: null, entity: null };
 
@@ -702,43 +672,6 @@ class Component extends DCLogic {
     ];
 
     const logPos = (v, max) => (Math.log10(1 + v) / Math.log10(1 + max)) * 100 + "%";
-    const histMedianLinePos = (bins, citations, { logScale = false } = {}) => {
-      const list = bins || [];
-      if (!list.length) return null;
-      const v = logScale ? Math.log10(1 + citations) : citations;
-      const n = list.length;
-      for (let i = 0; i < n; i += 1) {
-        const lo = Number(list[i].lo) || 0;
-        const hi = list[i].hi == null ? Infinity : Number(list[i].hi);
-        const inBin = i === n - 1 ? v >= lo : v >= lo && v < hi;
-        if (!inBin) continue;
-        const span = hi === Infinity ? 1 : hi - lo;
-        const frac = hi === Infinity ? 0.5 : Math.min(1, Math.max(0, (v - lo) / span));
-        return (((i + frac) / n) * 100).toFixed(2) + "%";
-      }
-      return null;
-    };
-    const histBars = (bins) => {
-      const list = bins || [];
-      const max = Math.max(...list.map((b) => Number(b.count) || 0), 1);
-      return list.map((b) => {
-        const val = Number(b.count) || 0;
-        return {
-          range: b.range || "",
-          logRange: b.logRange || "",
-          citeRange: b.citeRange || "",
-          countLabel: val.toLocaleString("en-US"),
-          barH: ((val / max) * 100).toFixed(1) + "%",
-        };
-      });
-    };
-    const citeHist = this.data.citationHist || {};
-    const citeHistLinear = histBars(citeHist.linear);
-    const citeHistLog = histBars(citeHist.log);
-    const citeHistMedian = Math.round(Number(citeHist.median) || 0);
-    const citeHistMedianLabel = citeHistMedian.toLocaleString("en-US") + " citations";
-    const citeHistMedianLinearPos = histMedianLinePos(citeHist.linear, citeHistMedian);
-    const citeHistMedianLogPos = histMedianLinePos(citeHist.log, citeHistMedian, { logScale: true });
     const scaleData = this.data.scaleData || [];
     const scaleRows = scaleData.map((s) => ({
       label: s.label,
@@ -758,8 +691,8 @@ class Component extends DCLogic {
         border: "oklch(0.89 0.008 255)", bg: "#fff", numColor: "oklch(0.7 0.02 255)",
       },
       {
-        num: "2", name: "Fixed effects", formula: "y ~ has_pr | entity_name\ny ~ has_pr | field_id\ny ~ has_pr | last_author_id",
-        intuition: "Give every journal/university, OpenAlex field, or last author its own baseline and compare papers only within the same group. Figure 3.2 shows how the estimate moves under university, journal, field, last-author, and progressively stricter university+journal FE models.",
+        num: "2", name: "Fixed effects", formula: "y ~ has_pr | fe_university\ny ~ has_pr | entity_name (+ last_author_id)",
+        intuition: "Hold university or entity fixed so comparisons are within the same institution or journal. Figure 3.2 shows university FE and institution+journal FE on the full sample.",
         border: NAVY, bg: "oklch(0.975 0.008 255)", numColor: NAVY,
       },
     ];
@@ -773,55 +706,38 @@ class Component extends DCLogic {
     const specDefs = [
       {
         key: "raw",
-        label: "Baseline · Raw",
+        label: "Base",
         note: (this.data.specNotes && this.data.specNotes.raw) ||
-          "No controls - naive mean(with PR) − mean(without PR).",
+          "No controls - naive mean(with PR) − mean(without PR) on the full sample.",
       },
       {
         key: "university",
-        label: "1 · University FE",
+        label: "University FE",
         note: (this.data.specNotes && this.data.specNotes.university) ||
-          "University fixed effects: y ~ has_pr | entity_name on institution papers only.",
-      },
-      {
-        key: "journal",
-        label: "2 · Journal FE",
-        note: (this.data.specNotes && this.data.specNotes.journal) ||
-          "Journal fixed effects: y ~ has_pr | entity_name on journal papers only.",
-      },
-      {
-        key: "field",
-        label: "3 · Field FE",
-        note: (this.data.specNotes && this.data.specNotes.field) ||
-          "Field fixed effects: y ~ has_pr | field_id (OpenAlex primary_topic.field).",
-      },
-      {
-        key: "last_author",
-        label: "4 · Last Author FE",
-        note: (this.data.specNotes && this.data.specNotes.last_author) ||
-          "Last-author fixed effects: y ~ has_pr | last_author_id.",
-      },
-      {
-        key: "univ_jour",
-        label: "5 · Univ + Journal FE",
-        note: (this.data.specNotes && this.data.specNotes.univ_jour) ||
-          "Entity FE on institution + journal papers: y ~ has_pr | entity_name.",
-      },
-      {
-        key: "univ_jour_field",
-        label: "6 · Univ + Journal + Field FE",
-        note: (this.data.specNotes && this.data.specNotes.univ_jour_field) ||
-          "Two-way FE: y ~ has_pr | entity_name + field_id on institution + journal papers.",
-      },
-      {
-        key: "univ_jour_last_author",
-        label: "7 · Univ + Journal + Last Author FE",
-        note: (this.data.specNotes && this.data.specNotes.univ_jour_last_author) ||
-          "Two-way FE: y ~ has_pr | entity_name + last_author_id on institution + journal papers.",
+          "University fixed effects on all institution papers: y ~ has_pr | fe_university.",
       },
     ];
+    if (this.data.has_univ_jour_fe) {
+      specDefs.push({
+        key: "univ_jour",
+        label: "Univ + Journal FE",
+        note: (this.data.specNotes && this.data.specNotes.univ_jour) ||
+          "Entity FE on institution + journal papers: y ~ has_pr | entity_name.",
+      });
+    }
+    if (this.data.has_univ_jour_last_author_fe) {
+      specDefs.push({
+        key: "univ_jour_last_author",
+        label: "Univ + Journal + Last Author",
+        note: (this.data.specNotes && this.data.specNotes.univ_jour_last_author) ||
+          "Entity + last-author FE: y ~ has_pr | entity_name + last_author_id.",
+      });
+    }
+    const fallbackSpec = specDefs.some((d) => d.key === "univ_jour")
+      ? "univ_jour"
+      : "university";
     const allowedSpecs = new Set(specDefs.map((d) => d.key));
-    const activeSpec = allowedSpecs.has(spec) ? spec : "univ_jour";
+    const activeSpec = allowedSpecs.has(spec) ? spec : fallbackSpec;
     const specChips = specDefs.map((d) => ({
       label: d.label,
       select: () => this.setState({ spec: d.key }),
@@ -832,20 +748,10 @@ class Component extends DCLogic {
     const specKeyMap = {
       raw: "raw",
       university: "univ",
-      journal: "jour",
-      field: "field",
-      last_author: "lastAuthor",
       univ_jour: "univJour",
-      univ_jour_field: "univJourField",
       univ_jour_last_author: "univJourLastAuthor",
     };
-    const fePremiumSpecs = new Set([
-      "field",
-      "last_author",
-      "univ_jour",
-      "univ_jour_field",
-      "univ_jour_last_author",
-    ]);
+    const ujFeSpecs = new Set(["univ_jour", "univ_jour_last_author"]);
     const specSample = (m) => {
       const rawVal = Number(m.raw) || 0;
       let wo = Number(m.wo) || 0;
@@ -859,23 +765,9 @@ class Component extends DCLogic {
         w = Number(m.wInst);
         if (!isFinite(w)) w = Number(m.w) || (wo + rawVal);
         premium = Number(m.univ) || 0;
-      } else if (activeSpec === "journal") {
-        wo = Number(m.woJour);
+      } else if (ujFeSpecs.has(activeSpec)) {
+        wo = Number(m.woUniJour);
         if (!isFinite(wo)) wo = Number(m.wo) || 0;
-        w = Number(m.wJour);
-        if (!isFinite(w)) w = Number(m.w) || (wo + rawVal);
-        premium = Number(m.jour) || 0;
-      } else if (fePremiumSpecs.has(activeSpec)) {
-        if (
-          activeSpec === "univ_jour" ||
-          activeSpec === "univ_jour_field" ||
-          activeSpec === "univ_jour_last_author"
-        ) {
-          wo = Number(m.woUniJour);
-          if (!isFinite(wo)) wo = Number(m.wo) || 0;
-        } else {
-          wo = Number(m.wo) || 0;
-        }
         premium = Number(m[specKeyMap[activeSpec]]) || 0;
         w = wo + premium;
       } else {
@@ -893,6 +785,7 @@ class Component extends DCLogic {
       };
     });
     const specNote = specDefs.find((d) => d.key === activeSpec).note;
+    const univJourSample = (this.data.n_univ_jour ?? 0).toLocaleString("en-US");
 
     const sortedEnts = [...this.ENTITIES].sort((a, b) => b.papers - a.papers);
     const entityOptions = sortedEnts.map((e) => ({
@@ -939,14 +832,28 @@ class Component extends DCLogic {
       };
     });
 
+    const regionComp = this.data.regionComparison || {};
+    const regionOutcomes = regionComp.outcomes || [];
+    const regionOutcomeRows = regionOutcomes.map((o) => {
+      const china = o.china || {};
+      const japan = o.japan || {};
+      const chinaRow = this.meanBarRow("China", china.wo, china.w);
+      const japanRow = this.meanBarRow("Japan", japan.wo, japan.w);
+      return {
+        label: o.label,
+        china: chinaRow,
+        japan: japanRow,
+      };
+    });
+
     return {
-      showTakeaways, outcomeCards, citeHistLinear, citeHistLog,
-      citeHistMedianLabel, citeHistMedianLinearPos, citeHistMedianLogPos,
+      showTakeaways, outcomeCards,
       scaleRows, specLadder, forestRows,
-      specChips, specRows, specNote, activeSpec,
+      specChips, specRows, specNote, activeSpec, univJourSample,
       entityOptions, selectedEntity: selE, entityRows, entityMeta,
       onEntityChange: (ev) => this.setState({ entity: ev.target.value }),
       hetPanels,
+      regionOutcomeRows,
     };
   }
 }

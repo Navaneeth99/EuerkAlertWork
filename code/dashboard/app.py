@@ -42,6 +42,7 @@ import utils.impact_analysis as impact_analysis  # noqa: E402
 importlib.reload(impact_analysis)
 
 from utils.impact_analysis import (  # noqa: E402
+    coef_path_for_categories,
     impute_mention_zeros,
     load_cached_coefficients_for_categories,
     load_paper_df_from_cache,
@@ -64,6 +65,30 @@ st.set_page_config(
 apply_report_theme()
 
 
+def _coef_path_mtime(
+    categories: tuple[str, ...],
+    dashboard_dir: Path,
+    fe: str,
+) -> float:
+    path = coef_path_for_categories(categories, out_dir=dashboard_dir, fe=fe)
+    return path.stat().st_mtime if path.exists() else 0.0
+
+
+def _dashboard_coef_mtime(dashboard_dir: Path) -> str:
+    """Fingerprint coefficient CSV mtimes so Streamlit cache refreshes after export."""
+    rel_paths = [
+        "coefficients/by_category/institution__journal__publisher.csv",
+        "coefficients/by_category/institution.csv",
+        "coefficients/by_category/institution__journal.csv",
+        "coefficients/by_mfe/institution__journal__entity_last_author.csv",
+        "coefficient_forest.csv",
+    ]
+    return ":".join(
+        str((dashboard_dir / rel).stat().st_mtime if (dashboard_dir / rel).exists() else 0)
+        for rel in rel_paths
+    )
+
+
 @st.cache_data(show_spinner="Loading dashboard cache…")
 def cached_load_paper_df(parquet_path: str, parquet_mtime: float) -> pd.DataFrame:
     del parquet_mtime
@@ -76,7 +101,9 @@ def cached_read_coef_for_categories(
     categories: tuple[str, ...],
     dashboard_dir: str,
     fe: str,
+    coef_mtime: float,
 ) -> pd.DataFrame | None:
+    del coef_mtime
     return load_cached_coefficients_for_categories(
         list(categories),
         out_dir=Path(dashboard_dir),
@@ -97,8 +124,9 @@ def cached_render_report(
     parquet_mtime: float,
     template_mtime: float,
     dclogic_mtime: float,
+    coef_mtime_key: str,
 ) -> str:
-    del parquet_mtime
+    del parquet_mtime, coef_mtime_key
     paper_df = cached_load_paper_df(
         str(DEFAULT_PAPER_PARQUET),
         DEFAULT_PAPER_PARQUET.stat().st_mtime,
@@ -115,40 +143,38 @@ def cached_render_report(
         c for c in paper_df["category"].dropna().unique().tolist() if c
     )
     cats_key = tuple(categories)
+    dash = str(DEFAULT_DASHBOARD_DIR)
     coef_df = cached_read_coef_for_categories(
-        cats_key, str(DEFAULT_DASHBOARD_DIR), "entity"
+        cats_key,
+        dash,
+        "entity",
+        _coef_path_mtime(cats_key, DEFAULT_DASHBOARD_DIR, "entity"),
     )
     university_coef_df = cached_read_coef_for_categories(
-        ("institution",), str(DEFAULT_DASHBOARD_DIR), "entity"
+        ("institution",),
+        dash,
+        "entity",
+        _coef_path_mtime(("institution",), DEFAULT_DASHBOARD_DIR, "entity"),
     )
-    journal_coef_df = cached_read_coef_for_categories(
-        ("journal",), str(DEFAULT_DASHBOARD_DIR), "entity"
-    )
-    field_coef_df = cached_read_coef_for_categories(
-        cats_key, str(DEFAULT_DASHBOARD_DIR), "field"
-    )
-    last_author_coef_df = cached_read_coef_for_categories(
-        cats_key, str(DEFAULT_DASHBOARD_DIR), "last_author"
-    )
+    uj_key = ("institution", "journal")
     univ_jour_coef_df = cached_read_coef_for_categories(
-        ("institution", "journal"), str(DEFAULT_DASHBOARD_DIR), "entity"
-    )
-    univ_jour_field_coef_df = cached_read_coef_for_categories(
-        ("institution", "journal"), str(DEFAULT_DASHBOARD_DIR), "entity_field"
+        uj_key,
+        dash,
+        "entity",
+        _coef_path_mtime(uj_key, DEFAULT_DASHBOARD_DIR, "entity"),
     )
     univ_jour_last_author_coef_df = cached_read_coef_for_categories(
-        ("institution", "journal"), str(DEFAULT_DASHBOARD_DIR), "entity_last_author"
+        uj_key,
+        dash,
+        "entity_last_author",
+        _coef_path_mtime(uj_key, DEFAULT_DASHBOARD_DIR, "entity_last_author"),
     )
 
     payload = build_report_payload(
         paper_df,
         coef_df,
         university_coef_df=university_coef_df,
-        journal_coef_df=journal_coef_df,
-        field_coef_df=field_coef_df,
-        last_author_coef_df=last_author_coef_df,
         univ_jour_coef_df=univ_jour_coef_df,
-        univ_jour_field_coef_df=univ_jour_field_coef_df,
         univ_jour_last_author_coef_df=univ_jour_last_author_coef_df,
     )
     template, dclogic = load_report_assets(template_mtime, dclogic_mtime)
@@ -181,6 +207,7 @@ def main() -> None:
         DEFAULT_PAPER_PARQUET.stat().st_mtime,
         REPORT_TEMPLATE.stat().st_mtime,
         DCLOGIC_JS.stat().st_mtime,
+        _dashboard_coef_mtime(DEFAULT_DASHBOARD_DIR),
     )
     components.html(html, height=900, scrolling=True)
 

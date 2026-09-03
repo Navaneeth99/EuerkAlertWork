@@ -392,6 +392,10 @@ def coefficients_mfe_dir(out_dir: Path = DEFAULT_DASHBOARD_DIR) -> Path:
     return Path(out_dir) / "coefficients" / "by_mfe"
 
 
+def coefficients_region_dir(out_dir: Path = DEFAULT_DASHBOARD_DIR) -> Path:
+    return Path(out_dir) / "coefficients" / "by_region"
+
+
 def coef_path_for_categories(
     categories: list[str] | tuple[str, ...],
     *,
@@ -408,6 +412,35 @@ def coef_path_for_categories(
     if fe == "entity_last_author":
         return coefficients_mfe_dir(out_dir) / f"{key}__entity_last_author.csv"
     return coefficients_dir(out_dir) / f"{key}.csv"
+
+
+def coef_path_for_region(
+    region: str,
+    *,
+    out_dir: Path = DEFAULT_DASHBOARD_DIR,
+) -> Path:
+    return coefficients_region_dir(out_dir) / f"{region.lower()}__entity.csv"
+
+
+def _nonempty_str(series: pd.Series) -> pd.Series:
+    s = series.astype("string")
+    return s.notna() & s.str.strip().ne("") & s.str.lower().ne("nan")
+
+
+def attach_fe_columns(df: pd.DataFrame) -> pd.DataFrame:
+    """Add fe_university for institution-category university FE."""
+    out = df.copy()
+    cat = out["category"].astype(str) if "category" in out.columns else pd.Series("", index=out.index)
+
+    pr_inst = out.get("pr_institution", pd.Series(pd.NA, index=out.index)).astype("string")
+    ent = out.get("entity_name", pd.Series("", index=out.index)).astype("string")
+
+    inst_mask = cat.eq("institution")
+    fe_univ = pr_inst.where(_nonempty_str(pr_inst))
+    fe_univ = fe_univ.where(fe_univ.notna(), ent.where(inst_mask))
+
+    out["fe_university"] = fe_univ
+    return out
 
 
 def overview_path_for_categories(
@@ -481,9 +514,15 @@ def save_dashboard_cache(
             n_with = int(subset["has_pr"].sum())
             n_without = int((~subset["has_pr"]).sum())
             n_entities = int(subset["entity_name"].nunique())
+            fe_col = "entity_name"
+            fe_fit_df = subset
+            if list(combo) == ["institution"]:
+                fe_fit_df = attach_fe_columns(subset)
+                fe_col = "fe_university"
+                n_entities = int(fe_fit_df[fe_col].nunique())
             if len(subset) >= 50 and n_with >= 5 and n_without >= 5 and n_entities >= 2:
                 try:
-                    coef_df = fit_coefficient_forest(subset, fe_col="entity_name")
+                    coef_df = fit_coefficient_forest(fe_fit_df, fe_col=fe_col)
                     coef_path = coef_path_for_categories(combo, out_dir=out_dir, fe="entity")
                     coef_df.to_csv(coef_path, index=False)
                     paths[f"coefficients:{key}"] = coef_path
@@ -721,6 +760,15 @@ def load_cached_coefficients_for_categories(
     )
 
 
+def load_cached_coefficients_for_region(
+    region: str,
+    *,
+    out_dir: Path = DEFAULT_DASHBOARD_DIR,
+) -> pd.DataFrame | None:
+    """Load precomputed entity FE coefficients for a geographic region."""
+    return load_cached_coefficients(coef_path_for_region(region, out_dir=out_dir))
+
+
 def load_cached_overview_for_categories(
     categories: list[str] | tuple[str, ...],
     *,
@@ -802,17 +850,21 @@ def fit_coefficient_forest(
     paper_df: pd.DataFrame,
     *,
     fe_col: str | list[str] = "entity_name",
+    fe_mode: str = "additive",
 ) -> pd.DataFrame:
     """OLS has_pr coefficients with one or more fixed-effect dimensions.
 
     Default ``fe_col='entity_name'`` matches 07_create_graphs.
     Pass a list, e.g. ``['entity_name', 'field_id']``, for multi-way FE.
+    ``fe_mode='interaction'`` absorbs crossed FEs (``id1^id2``) instead of additive.
     """
     import pyfixest as pf
 
     fe_cols = [fe_col] if isinstance(fe_col, str) else list(fe_col)
     if not fe_cols:
         raise ValueError("Need at least one fixed-effects column")
+    if fe_mode not in {"additive", "interaction"}:
+        raise ValueError(f"Unknown fe_mode: {fe_mode}")
 
     data = paper_df.copy()
     for col in fe_cols:
@@ -826,7 +878,10 @@ def fit_coefficient_forest(
         if data[col].nunique() < 2:
             raise ValueError(f"Need ≥2 levels of {col} for fixed effects")
 
-    fe_rhs = " + ".join(fe_cols)
+    if fe_mode == "interaction" and len(fe_cols) > 1:
+        fe_rhs = "^".join(fe_cols)
+    else:
+        fe_rhs = " + ".join(fe_cols)
     cluster_col = fe_cols[0]
 
     rows = []

@@ -1,15 +1,15 @@
 metric,metric_label,group,mean,se,n
 attention_score,Attention Score,With PR,38.43582474226804,1.495064320399156,970
 attention_score,Attention Score,Without PR,3.897480867346939,0.24583070120195374,9408
-cited_by_count,Citations,With PR,26.89896907216495,1.957627841656434,970
-cited_by_count,Citations,Without PR,26.209183673469386,0.6787123225046582,9408
-news_mentions,News Mentions,With PR,4.5,0.18234532205596884,970
-news_mentions,News Mentions,Without PR,0.27774234693877553,0.027562042399693534,9408
-patent_mentions,Patent Mentions,With PR,0.07216494845360824,0.01722718126609663,970
-patent_mentions,Patent Mentions,Without PR,0.1556122448979592,0.021641581938102436,9408
-policy_mentions,Policy Mentions,With PR,0.023711340206185566,0.011960246764178686,970
-policy_mentions,Policy Mentions,Without PR,0.022427721088435375,0.0030776352881880698,9408
-x_post_mentions,X Mentions,With PR,7.520618556701031,0.3566197540862964,970
-x_post_mentions,X Mentions,Without PR,4.097470238095238,0.2990589982998796,9408
-facebook_mentions,Facebook Mentions,With PR,0.7051546391752578,0.02479098258120982,970
-facebook_mentions,Facebook Mentions,Without PR,0.36989795918367346,0.008004721373911408,9408
+cited_by_count,Citations,With PR,26.898969650268555,1.9576278924942017,970
+cited_by_count,Citations,Without PR,26.209182739257812,0.6787123680114746,9408
+news_mentions,News Mentions,With PR,4.5,0.18234533071517944,970
+news_mentions,News Mentions,Without PR,0.2777423560619354,0.02756204456090927,9408
+patent_mentions,Patent Mentions,With PR,0.07216494530439377,0.017227182164788246,970
+patent_mentions,Patent Mentions,Without PR,0.15561224520206451,0.021641584113240242,9408
+policy_mentions,Policy Mentions,With PR,0.023711340501904488,0.011960246600210667,970
+policy_mentions,Policy Mentions,Without PR,0.022427720949053764,0.003077635308727622,9408
+x_post_mentions,X Mentions,With PR,7.520618438720703,0.3566197454929352,970
+x_post_mentions,X Mentions,Without PR,4.097470283508301,0.2990590035915375,9408
+facebook_mentions,Facebook Mentions,With PR,0.7051546573638916,0.02479098178446293,970
+facebook_mentions,Facebook Mentions,Without PR,0.3698979616165161,0.008004721254110336,9408
