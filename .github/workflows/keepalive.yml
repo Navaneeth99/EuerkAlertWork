@@ -1,0 +1,61 @@
+name: Keep dashboard awake
+
+# Set the app's public URL once under
+# Settings -> Secrets and variables -> Actions -> Variables -> New repository variable
+#   Name: APP_URL   Value: https://<your-app>.streamlit.app  (or *.onrender.com / *.hf.space)
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"   # quick HTTP ping (needed for Render's 15-minute sleep)
+    - cron: "17 */5 * * *"   # full browser visit (needed for Streamlit Cloud / HF Spaces)
+    - cron: "0 12 1 * *"     # monthly commit so GitHub doesn't pause this workflow
+  workflow_dispatch:         # "Run workflow" button: does the full browser visit
+
+permissions:
+  contents: write
+
+concurrency:
+  group: keepalive-${{ github.event.schedule || 'manual' }}
+  cancel-in-progress: true
+
+jobs:
+  ping:
+    if: github.event.schedule == '*/10 * * * *'
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: HTTP ping
+        run: curl -sS -o /dev/null -w "HTTP %{http_code}\n" --max-time 90 "${{ vars.APP_URL }}" || true
+
+  browser-visit:
+    if: github.event.schedule == '17 */5 * * *' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install Playwright
+        run: |
+          pip install playwright
+          playwright install --with-deps chromium
+      - name: Visit the app
+        env:
+          APP_URL: ${{ vars.APP_URL }}
+        run: python scripts/keepalive.py
+
+  monthly-commit:
+    if: github.event.schedule == '0 12 1 * *'
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Commit a timestamp
+        run: |
+          date -u +"%Y-%m-%dT%H:%M:%SZ" > .github/keepalive-stamp
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git add .github/keepalive-stamp
+          git commit -m "chore: keep scheduled workflows active [skip ci]"
+          git push
